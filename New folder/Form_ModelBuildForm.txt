@@ -3,8 +3,13 @@ Dim QueueCount As Integer
   Dim UseQueue As Boolean
 '(FilePath, baseYear, Snapshot, Regional, busOffset, RegionalArea, ZoneOffset, ZoneConfig, OwnerOffset, OverwriteArea, _
         SCEGArea, AutoDispatch, TargetSwingGen, SlackBus, combineBuses, PSSESeq, PSSEDyn, UseOldWinterRatings, GenDown, SysLoss, TRMImport, _
-		TRMImDec, TRMImDVP, TRMImDEP, TRMImSC, incSolar, percentOfSolar, ignoreAfterQueueNum, incNoIA, incAFSYS, incERIS, incBusData, incShuntData, incBranchData, incTfrmData, _
-		incLoadData, incGenData, False, snapDate, snapSeason, projectSubset, projectsStartDate, projectsEndDate)
+        TRMImDEC, TRMImDVP, TRMImDEP, TRMImSC, incSolar, percentOfSolar, ignoreAfterQueueNum, incNoIA, incAffSys, incERIS, incBusData, incShuntData, incBranchData, incTfmrData, _
+        incLoadData, incGenData, False, snapDate, snapSeason, projectsSubset, projectsStartDate, projectsEndDate)
+  Dim OutputDirQ(9) As Integer
+  Dim VarLoadFail As Boolean
+  Dim FilenamePrefixQ(9) As String
+  Dim FilenameSuffixQ(9) As String
+  Dim SnapshotQ(9) As Integer, snapDateQ(9) As Date, snapSeasonQ(9) As String, SnapLoadQ(9) As Integer, SnapTypeQ(9) As String, ContFacStudyQ(9) As Boolean, ContFacDateQ(9) As Date
   Dim FilePathQ(9) As String
   Dim baseYearQ(9) As Integer
   Dim SnapshotQ(9) As Integer
