@@ -35,37 +35,15 @@ Dim QueueCount As Integer
   Dim TRMImDEPQ(9) As Integer
   Dim TRMImSCQ(9) As Integer
   
-  
-  Dim percentOfSolarQ(9) As Integer
-  Dim ignoreAfterQueueNumQ(9) As Integer
-
-  Dim incNoIAQ(9) As Boolean
-  Dim incERISQ(9) As Boolean
-  Dim incAFSYSQ(9) As Boolean
-  Dim incBusDataQ(9) As Boolean
-  Dim incShuntDataQ(9) As Boolean
-  Dim incBranchDataQ(9) As Boolean
-  Dim incTfrmDataQ(9) As Boolean
-  Dim incLoadDataQ(9) As Boolean
-  Dim incGenDataQ(9) As Boolean
-  Dim incAngleFixQ(9) As Boolean
-
-  Dim snapDateQ(9) As Date
-  Dim snapSeasonQ(9) As String
-  Dim SnapLoadQ(9) As Integer
-  Dim SnapTypeQ(9) As String
-  Dim SnapIntORQ(9) As String
-  Dim ContFacStudyQ(9) As Boolean
-  Dim ContFacDateQ(9) As Date
-
-  Dim projectsSubsetQ(9) As Boolean
-  Dim projectsStartDateQ(9) As Date
-  Dim projectsEndDateQ(9) As Date
-
-  Dim PSSESavQ(9) As Boolean
-  Dim PWAuxQ(9) As Boolean
-  Dim PSSEVer33HigherQ(9) As Boolean
-  Dim PSSECTGQ(9) As Boolean
+  Dim incSolarQ(9) As Boolean
+  Dim percentOfSolarQ(9) As Integer, ignoreAfterQueueNumQ(9) As Integer, incNoIAQ(9) As Boolean, incERISQ(9) As Boolean, incAffSysQ(9) As Boolean
+  Dim incBusDataQ(9) As Boolean, incShuntDataQ(9) As Boolean, incBranchDataQ(9) As Boolean, incTfmrDataQ As Boolean
+  Dim incLoadDataQ(9) As Boolean, incGenDataQ(9) As Boolean, incAngleFixQ(9) As Boolean
+  Dim inc46kvDataQ(9) As Boolean
+  Dim chkSolarKMLOutputQ(9) As Boolean
+  Dim projectsSubsetQ(9) As Boolean, projectsStartDateQ(9) As Data, projectsEndDateQ(9) As Date
+  Dim PSSESavQ(9) As Boolean, PWAuxQ(9) As Boolean, PSSEVer33HigherQ(9) As Boolean
+  Dim PSSECtgQ(9) As Boolean
   Dim PSSEDynQ(9) As Boolean
   Dim PSSESeqQ(9) As Boolean
 
@@ -73,31 +51,23 @@ Dim QueueCount As Integer
   Dim SlackBusQ(9) As Long
 
   Dim PWGMDAuxQ(9) As Boolean
-  Dim includeAuxSeqQ(9) As Boolean
+  Dim IncludeAuxSeqQ(9) As Boolean
   Dim includeAuxCTGQ(9) As Boolean
-  Dim includeAuxdLatLongsQ(9) As Boolean
+  Dim includeAxdLatsLongsQ(9) As Boolean
 
   Dim combineBusesQ(9) As Boolean
   Dim GenDownQ(9) As Boolean
   Dim ShortCircuitQ(9) As Boolean
 
-'===========================================================
-' Other Variables
-'===========================================================
-
-  Dim FilePath As String
+  'Other Variables:
+  Dim FilePathQ(9) As String
   Dim dbQ As DAO.Database
   Dim SnapshotsQ As DAO.Recordset
   Dim SnapshotNameQ(9) As String
 
-
-'===========================================================
-' Output Directory Picker
-'===========================================================
-
   Private Sub btnOutputDir_Click()
 
-    Dim OutputDir As String
+    Dim OuputDir As String
 
     With Application.FileDialog(msoFileDialogFolderPicker)
         .Title = "Please Select an Output Directory for Auto-generated Files"
@@ -109,53 +79,40 @@ Dim QueueCount As Integer
         End If
 
         If .Show = -1 Then
-            'ok clicked
+            'okclicked
             OutputDir = .SelectedItems(1)
             Me.txtOutputDir.SetFocus
             Me.txtOutputDir.Text = OutputDir
         Else
-            'do nothing, user clicked cancel
+            'do nothing. User clicked the cancel button
         End If
     End With
 
 End Sub
 
-
-'===========================================================
-' Build Files Button
-'===========================================================
-
 Private Sub btnBuildFiles_Click()
 
-    If Not UseQueue Then
+    If Not UseQueue Then 'Added for Multiple Models Mod
 
-        'Reminder for multiple models mod
+        'Added to remind user of selection 2/27/20 AU
         If Me.chkPSSESav.Value Then
             If MsgBox("You have selected to write out a PSSE Python Script. Do you wish to continue?", vbYesNo, "Output Selection") = vbNo Then
                 Exit Sub
             End If
-        ElseIf Me.chkPWAux.Value Then
+        ElseIf Me.chkPWaux.Value Then
             If MsgBox("You have selected to write out a PowerWorld .aux file. Do you wish to continue?", vbYesNo, "Output Selection") = vbNo Then
                 Exit Sub
             End If
         End If
 
-        '=======================================================
-        ' Declare business variables
-        '=======================================================
+        'Declare business variables:
 
         Dim OutputDir As String, SQL As String
         Dim FilenamePrefix As String
         Dim FilenameSuffix As String
 
-        Dim Snapshot As Integer
-        Dim snapDate As Date
-        Dim snapSeason As String
-        Dim SnapLoad As Integer
-        Dim SnapType As String
-        Dim SnapIntOR As String
-        Dim ContFacStudy As Boolean
-        Dim ContFacDate As Date
+        Dim Snapshot As Integer, snapDate As Date, snapSeason As String, SnapLoad As Integer, SnapType As String, SnapIntOR As String, ContFacStudy As Boolean, ContFacDate As Date
+        'Added , ContFacStudy As Boolean, ContFacDate As Date for CF Study Mod
 
         Dim baseYear As Double
         Dim SysLoss As Double
@@ -170,63 +127,57 @@ Private Sub btnBuildFiles_Click()
         Dim AutoDispatch As Boolean
         Dim TargetSwingGen As Double
 
-        Dim UseOldWinterRatings As Boolean
-        Dim UseSeasonalRatings As Boolean
-        Dim UseWinPeakRatings As Boolean
-        Dim UseOpsPlanWinRatings As Boolean
-        Dim UseSpringRatings As Boolean
-        Dim UseNewSummerRatings As Boolean
-        Dim UseFallRatings As Boolean
+        Dim UseOldWinterRatings As Boolean 'modified to 'old' 10/2023 BU
+        Dim UseSeasonalRatings As Boolean 'added 10/2023 BU
+        Dim UseNewWinPeakRatings As Boolean 'added 10/2023 BU
+        Dim UseOpsPlnWinRatings As Boolean 'added 10/2023 BU
+        Dim UseSpringRatings As Boolean 'added 10/2023 BU
+        Dim UseNewSumRatings As Boolean 'added 10/2023 BU
+        Dim UseFallRatings As Boolean 'added 10/2023 BU
 
         Dim TRMImport As Boolean
-        Dim TRMImDec As Integer
+        Dim TRMImDEC As Integer
         Dim TRMImDVP As Integer
         Dim TRMImDEP As Integer
         Dim TRMImSC As Integer
 
         Dim incSolar As Boolean
-        Dim percentOfSolar As Integer
-        Dim ignoreAfterQueueNum As Integer
+		Dim percentOfSolar As Integer, ignoreAfterQueueNum As Integer, incNoIA As Boolean, incERIS As Boolean, incAffSys As Boolean
+        Dim incBusData As Boolean, incShuntData As Boolean, incBranchData As Boolean, incTfmrData As Boolean
+        Dim incLoadData As Boolean, incGenData As Boolean, incAngleFix As Boolean
+        Dim inc46kvData As Boolean
+        Dim chkSolarKMLoutput As Boolean
+        Dim projectsSubset As Boolean, projectsStartDate As Date, projectsEndDate As Date
 
-        Dim incNoIA As Boolean
-        Dim incERIS As Boolean
-        Dim incAFSYS As Boolean
-
-        Dim incBusData As Boolean
-        Dim incShuntData As Boolean
-        Dim incBranchData As Boolean
-        Dim incTfrmData As Boolean
-        Dim incLoadData As Boolean
-        Dim incGenData As Boolean
-
-        Dim chkSolarKMLOutput As Boolean
-
-        Dim PSSESav As Boolean
-        Dim PSSEVer33Higher As Boolean
-        Dim PWAux As Boolean
-
-        Dim PSSECTG As Boolean
+        Dim PSSESav As Boolean, PWaux As Boolean, PSSEVer33Higher As Boolean
+        Dim PSSECtg As Boolean
         Dim PSSEDyn As Boolean
         Dim PSSESeq As Boolean
 
         Dim Channels As Boolean
         Dim SlackBus As Long
 
+        ' Dim PWAux As Boolean
         Dim PWGMDAux As Boolean
         Dim IncludeAuxSeq As Boolean
-        Dim IncludeAuxCTG As Boolean
-        Dim IncludeAuxdLatLongs As Boolean
+        Dim includeAuxCTG As Boolean
+        Dim includeAxdLatsLongs As Boolean
 
         Dim combineBuses As Boolean
         Dim GenDown As Boolean
         Dim ShortCircuit As Boolean
-
-        '=======================================================
-        ' Get form data
-        '=======================================================
+		
+		'Other Variables:
+		Dim FilePath As String
+		Dim db As DAO.Recordset
+		Dim Snapshots As DAO.Recordset
+		Dim SnapshotName As String
+		Dim exitMsg As String
+		Dim i As Integer
 
         DoCmd.SetWarnings False
 
+        'Get form data:
         Me.txtOutputDir.SetFocus
         OutputDir = Me.txtOutputDir.Text
 
@@ -244,12 +195,256 @@ Private Sub btnBuildFiles_Click()
         snapDate = Me.SnapShotDatePicker.Value
 
         If IsNull(Me.ComboSnapShotSeason.Value) Then
-            MsgBox "You must enter a Snapshot Season"
+            MsgBox ("You must enter a Snapshot Season")
             Exit Sub
         End If
 
         snapSeason = Me.ComboSnapShotSeason.Value
 
+projectsSubset = chkProjectsOutput.Value
+If projectsSubset Then
+    projectsStartDate = Me.ProjectsStartDatePicker.Value
+    projectsEndDate = Me.ProjectsEndDatePicker.Value
+    If snapSeason = "W" And month(snapDate) <> 12 Then
+        SnapshotName = Right(Year(snapDate) - 1, 2) & snapSeason
+    Else
+        SnapshotName = Right(Year(snapDate), 2) & snapSeason
+    End If
+Else
+    'Set snapshot up
+    If IsNull(Me.SnapShotLoad.Value) Then
+        MsgBox ("You must enter a Snapshot Load value")
+        Exit Sub
+    End If
+    SnapLoad = Me.SnapShotLoad.Value
+    SnapType = Me.ComboSnapShotType.Value
+    If IsNull(Me.ComboSnapShotType.Value) Then
+        MsgBox ("You must enter a Snapshot Type")
+        Exit Sub
+    End If
+
+    '............................................................
+    ContFacStudy = Me.CheckContFacStudy.Value 'Added for CF Study Mod
+    ContFacDate = Me.CFDatePicker.Value 'Added for CF Study Mod
+    If ContFacStudy = -1 And CDate(ContFacDate) >= CDate(snapDate) Then
+        MsgBox ("You must enter a Base Date for the Contingent Facilities Study that is earlier than the Snapshot Date")
+        Exit Sub
+        Me.CFDatePicker.SetFocus
+    End If
+
+    'Added for CF Study Mod to verify CF Base date is before snapshot date
+    '............................................................
+
+    On Error Resume Next
+    SnapIntOR = Me.SnapShotIntOR.Value
+    On Error GoTo -1
+
+    DoCmd.SetWarnings False
+    Set db = CurrentDb()
+    Set Snapshots = db.OpenRecordset("Snapshots", dbOpenDynaset, dbSeeChanges)
+    Snapshots.MoveLast
+    Snapshots.MoveFirst
+
+    SQL = "UPDATE Snapshots SET [Selected] = '-1'"
+    DoCmd.RunSQL SQL
+
+    'Next Section added for CF Mod Updates model snapshot with CF values if selected
+    If ContFacStudy Then
+        SQL = "UPDATE Snapshots SET [ConFacDate] = '" _
+        & month(ContFacDate) & "/" & day(ContFacDate) & "/" & Year(ContFacDate) & "', [Contingent_Facility] = '-1'"
+        DoCmd.RunSQL SQL
+    Else
+        SQL = "UPDATE Snapshots SET [ConFacDate] = '0/0/00', [Contingent_Facility] = '0'"
+        DoCmd.RunSQL SQL
+    End If
+
+    While Not Snapshots.EOF
+        If Snapshots.Fields("Selected") Then
+            Snapshot = Snapshots.Fields("model_index")
+
+            SQL = "UPDATE Snapshots SET [model_name] = '" & Right(Year(snapDate), 2) & snapSeason & "', [year] = '" & Year(snapDate) & "', [season] = '" & snapSeason & "', [date] = '" _
+            & month(snapDate) & "/" & day(snapDate) & "/" & Year(snapDate) & "', [system_load_MW] = '" & SnapLoad & "', [OR_interchange_MW] = '" & SnapIntOR & "', [study] = '" & SnapType & _
+            "', [psse_header1] = '" & Year(snapDate) & "', [psse_header2] = '" & Year(snapDate) & snapSeason & " SCEG AREA'"
+
+            DoCmd.RunSQL SQL
+
+            If Right(snapSeason, 1) = "W" And month(snapDate) <> 12 Then
+                SQL = "UPDATE Snapshots SET [model_name] = '" & Right(Year(snapDate), 2) - 1 & snapSeason & "', [year] = '" & Year(snapDate) - 1 & "', [study] = '" & SnapType & _
+                "', [psse_header1] = '" & Year(snapDate) - 1 & "', [psse_header2] = '" & Year(snapDate) - 1 & snapSeason & " SCEG AREA'"
+                DoCmd.RunSQL SQL
+            End If
+
+            Snapshots.Delete
+        End If
+
+        If Snapshots.Fields("model_index") = Snapshot Then
+            SnapshotName = Snapshots.Fields("model_name")
+        End If
+
+        Snapshots.MoveNext
+    Wend
+
+    Snapshots.Close
+
+    DoCmd.SetWarnings False
+
+    If IsNull(Me.txtBaseYear.Value) Then
+        MsgBox ("You must enter a Base Year")
+        Exit Sub
+    End If
+
+    baseYear = Me.txtBaseYear.Value
+
+    If IsNull(Me.txtSysLoss.Value) Then
+        MsgBox ("You must enter a Sys Loss%")
+        Exit Sub
+    End If
+
+    sysLoss = Me.txtSysLoss.Value
+
+    If Not projectsSubset Then
+        Regional = Me.chkRegional.Value
+        busOffset = Me.txtBusOffset.Value
+        RegionalArea = Me.txtRegionalArea.Value
+        ZoneOffset = Me.txtZoneOffset.Value
+        OwnerOffset = Me.txtOwnerOffset.Value
+        ZoneConfig = Me.FrameZones.Value
+        OverwriteArea = Me.chkOverwriteArea.Value
+        SCEGArea = Me.txtSCEGArea.Value
+        AutoDispatch = Me.chkAutoDispatch.Value
+        TargetSwingGen = CDbl(Me.txtTargetSwingGen.Value)
+        UseOldWinterRatings = Me.chkUseOldWinRatings.Value 'modified 10/2023 BU
+        UseSeasonalRatings = Me.chkUseSeasonalRatings.Value 'Added 10/2023 BU
+
+        If SeasonalRatingsOptGroup.Value = 1 Then 'Opt 1 is WinterPeak Button
+            UseNewWinPeakRatings = True
+        ElseIf SeasonalRatingsOptGroup.Value = 2 Then 'Opt 2 is OpsPlnWinter Button
+            UseOpsPlnWinRatings = True
+        ElseIf SeasonalRatingsOptGroup.Value = 3 Then 'Opt 3 is Spring Button
+            UseSpringRatings = True
+        ElseIf SeasonalRatingsOptGroup.Value = 4 Then 'Opt 4 is NewSummer Button
+            UseNewSumRatings = True
+        ElseIf SeasonalRatingsOptGroup.Value = 5 Then 'Opt 5 is Fall Button
+            UseFallRatings = True
+        End If
+
+        TRMImport = Me.chkTRMImport.Value
+        TRMImDEC = Me.txtTRMImDEC.Value
+        TRMImDVP = Me.txtTRMImDVP.Value
+        TRMImDEP = Me.txtTRMImDEP.Value
+        TRMImSC = Me.txtTRMImSC.Value
+
+        incSolar = Me.CheckIncludeSolar.Value
+        incNOIA = False
+        incERIS = False
+
+        If Not incSolar Then
+            percentOfSolar = 0
+            ignoreAfterQueueNum = 9999
+        Else
+            percentOfSolar = Me.TextPercSolarOfPeak.Value
+            ignoreAfterQueueNum = Me.TextIgnoreAfterQueueNum.Value
+            incNOIA = Me.CheckNoIA.Value
+            incERIS = Me.CheckERIS.Value 'not needed anymore. Checkbox deleted. BKU 9-5-17
+            incAffSys = Me.CheckAffSys.Value
+        End If
+
+        incBusData = Me.CheckIncBusData.Value
+        incShuntData = Me.CheckIncShuntData.Value
+        incBranchData = Me.CheckIncBranchData.Value
+        incTfmrData = Me.CheckIncTfmrData.Value
+        incLoadData = Me.CheckIncLoadData.Value
+        incGenData = Me.CheckIncGenData.Value
+
+        chkSolarKMLOutput = Me.chkSolarKMLOutput.Value
+        PSSEsav = Me.chkPSSEsav.Value
+        PSSEVer33Higher = Me.chkPSSEVer33Higher.Value
+        PWAux = Me.chkPWAux.Value
+        PSSECtg = Me.chkPSSECtg.Value
+        PSSEDyn = Me.chkPSSEDyn.Value
+        PSSESeq = Me.chkPSSESeq.Value
+
+        PWAux = Me.chkPWAux.Value
+        IncludeAuxSeq = Me.chkIncludeAuxSeq.Value
+        includeAuxCTG = Me.chkIncludeAuxCTG.Value
+        includeAxdLatsLongs = Me.chkIncludeAxdLatsLongs.Value
+        slackBus = Me.cmbSlackBus.Value
+        CombineBuses = Me.chkCombineBuses.Value
+        GenDown = Me.chkGenDown.Value
+        PWGMDaux = Me.chkPWGMD.Value
+
+        DoCmd.SetWarnings False
+
+        SQL = "UPDATE Machines SET is_slack = false WHERE bus_number <> " & Me.slackBusNum.Value
+        DoCmd.RunSQL SQL
+
+        SQL = "UPDATE Machines SET is_slack = true WHERE bus_number = " & Me.slackBusNum.Value
+        DoCmd.RunSQL SQL
+
+        DoCmd.SetWarnings True
+
+        FilePath = OutputDir
+        If Right(OutputDir, 1) <> "\" Then
+            FilePath = FilePath & "\"
+        End If
+
+        FilePath = FilePath & FilenamePrefix & SnapshotName
+
+        If GenDown Then
+            FilePath = FilePath & "_GD"
+        End If
+
+        'JWR - This didn't work as well as I'd like. May revisit one day.
+        'Get GenDownList Recordset and cache into array:
+        'Dim GenDownList As DAO.Recordset, i As Integer
+        'Set GenDownList = db.OpenRecordset("GenToShutdown", dbOpenDynaset, dbSeeChanges)
+        'GenDownSize = DCount("Gen", "GenToShutdown")
+        'GenDownList.MoveLast
+        'GenDownList.MoveFirst
+        'i = 1
+        'For i = 1 To GenDownSize
+        'FilePath = FilePath & "_" & Trim(Mid(GenDownList.Fields("Gen").Value, 5, 3))
+        '
+        'The McMeekin units have that funky double generator thing, so the unit ID has to be fixed
+        'If Left(GenDownList.Fields("Gen").Value, 3) = 808 Then
+        'FilePath = FilePath & "1"
+        'ElseIf GenDownList.Fields("Gen").Value = 809 Then
+        'FilePath = FilePath & "2"
+        'Else
+        'FilePath = FilePath & Trim(Right(GenDownList.Fields("Gen").Value, 2)) 'Unit ID is last two characters
+        'End If
+        '
+        'GenDownList.MoveNext
+        'Next i
+
+        If FilenameSuffix <> "" Then
+            FilePath = FilePath & "_"
+        End If
+
+        If TRMImport And FilenameSuffix = "" Then
+            FilePath = FilePath & "_TRM"
+        ElseIf TRMImport Then
+            FilePath = FilePath & "_TRM_"
+        End If
+
+        If projectsSubset And FilenameSuffix = "" Then
+            FilePath = FilePath & "_projectsSubset"
+        ElseIf projectsSubset Then
+            FilePath = FilePath & "_projectsSubset_"
+        End If
+
+        FilePath = FilePath & FilenameSuffix
+
+        exitMsg = "Model Data written to: " & FilePath
+        DoCmd.SetWarnings (True)
+
+        If PSSEsav Then
+            ModelWriter.WriteOutFullModel(FilePath, baseYear, Snapshot, Regional, busOffset, RegionalArea, ZoneOffset, ZoneConfig, OwnerOffset, OverwriteArea, _
+            SCEGArea, AutoDispatch, TargetSwingGen, slackBus, CombineBuses, PSSESeq, PSSEDyn, UseOldWinterRatings, UseSeasonalRatings, UseNewWinPeakRatings, _
+            UseSpringRatings, UseNewSumRatings, UseFallRatings, GenDown, sysLoss, TRMImport, TRMImDEC, TRMImDVP, TRMImDEP, TRMImSC, incSolar, percentOfSolar, ignoreAfterQueueNum, _
+            incNOIA, incAffSys, incERIS, incBusData, incShuntData, incBranchData, incTfmrData, incLoadData, incGenData, True, snapDate, snapSeason, projectsSubset, projectsStartDate, _
+            projectsEndDate, PSSEVer33Higher)
+			
         '=======================================================
         ' Continue Build Logic (Queue Handling)
         '=======================================================
