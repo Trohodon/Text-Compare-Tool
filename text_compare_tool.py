@@ -10,9 +10,13 @@ class TextCompareApp:
         self.root.title("VBA/Text Compare Tool")
         self.root.geometry("1400x850")
 
-        self.ignore_whitespace = tk.BooleanVar(value=False)
-        self.ignore_blank_lines = tk.BooleanVar(value=False)
-        self.show_only_differences = tk.BooleanVar(value=False)
+        # Defaults are set for VBA transcription checking.
+        # These remove the annoying "blank line with random spaces" differences.
+        self.ignore_whitespace_only_blank_lines = tk.BooleanVar(value=True)
+        self.strip_trailing_spaces = tk.BooleanVar(value=True)
+        self.ignore_all_blank_lines = tk.BooleanVar(value=False)
+        self.ignore_extra_whitespace = tk.BooleanVar(value=False)
+        self.show_only_differences = tk.BooleanVar(value=True)
 
         self._build_ui()
 
@@ -20,7 +24,7 @@ class TextCompareApp:
         top = ttk.Frame(self.root, padding=8)
         top.pack(fill="x")
 
-        ttk.Label(top, text="Text Compare Tool", font=("Segoe UI", 16, "bold")).pack(side="left", padx=(0, 20))
+        ttk.Label(top, text="VBA/Text Compare Tool", font=("Segoe UI", 16, "bold")).pack(side="left", padx=(0, 20))
 
         ttk.Button(top, text="Load Left", command=lambda: self.load_file(self.left_text)).pack(side="left", padx=3)
         ttk.Button(top, text="Load Right", command=lambda: self.load_file(self.right_text)).pack(side="left", padx=3)
@@ -28,11 +32,40 @@ class TextCompareApp:
         ttk.Button(top, text="Clear", command=self.clear_all).pack(side="left", padx=3)
         ttk.Button(top, text="Save Diff", command=self.save_diff).pack(side="left", padx=3)
 
-        ttk.Checkbutton(top, text="Ignore extra whitespace", variable=self.ignore_whitespace).pack(side="left", padx=12)
-        ttk.Checkbutton(top, text="Ignore blank lines", variable=self.ignore_blank_lines).pack(side="left", padx=5)
-        ttk.Checkbutton(top, text="Only show differences", variable=self.show_only_differences).pack(side="left", padx=5)
+        opts = ttk.Frame(self.root, padding=(8, 0, 8, 4))
+        opts.pack(fill="x")
 
-        self.status = ttk.Label(top, text="Paste text on both sides, then click Compare.")
+        ttk.Checkbutton(
+            opts,
+            text="Treat blank lines with spaces as blank",
+            variable=self.ignore_whitespace_only_blank_lines,
+        ).pack(side="left", padx=6)
+
+        ttk.Checkbutton(
+            opts,
+            text="Ignore trailing spaces",
+            variable=self.strip_trailing_spaces,
+        ).pack(side="left", padx=6)
+
+        ttk.Checkbutton(
+            opts,
+            text="Ignore all blank lines",
+            variable=self.ignore_all_blank_lines,
+        ).pack(side="left", padx=6)
+
+        ttk.Checkbutton(
+            opts,
+            text="Ignore extra whitespace inside lines",
+            variable=self.ignore_extra_whitespace,
+        ).pack(side="left", padx=6)
+
+        ttk.Checkbutton(
+            opts,
+            text="Only show differences",
+            variable=self.show_only_differences,
+        ).pack(side="left", padx=6)
+
+        self.status = ttk.Label(opts, text="Paste text on both sides, then click Compare.")
         self.status.pack(side="right")
 
         panes = ttk.PanedWindow(self.root, orient="horizontal")
@@ -97,14 +130,26 @@ class TextCompareApp:
     def normalize_lines(self, text):
         lines = text.splitlines()
 
-        if self.ignore_blank_lines.get():
-            lines = [line for line in lines if line.strip() != ""]
+        normalized = []
+        for line in lines:
+            # Main fix:
+            # Lines like "      " become "" instead of showing as fake differences.
+            if self.ignore_whitespace_only_blank_lines.get() and line.strip() == "":
+                line = ""
 
-        if self.ignore_whitespace.get():
-            # Keeps wording/order, but ignores indentation and repeated spacing.
-            lines = [" ".join(line.strip().split()) for line in lines]
+            if self.strip_trailing_spaces.get():
+                line = line.rstrip()
 
-        return lines
+            if self.ignore_extra_whitespace.get():
+                # Keeps wording/order, but ignores indentation and repeated spaces/tabs.
+                line = " ".join(line.strip().split())
+
+            normalized.append(line)
+
+        if self.ignore_all_blank_lines.get():
+            normalized = [line for line in normalized if line.strip() != ""]
+
+        return normalized
 
     def compare(self):
         left_raw = self.left_text.get("1.0", "end-1c")
