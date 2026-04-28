@@ -1,0 +1,18 @@
+Option Compare Database
+
+Private Sub Command0_Click()
+
+  DyreWriter.ExportToDyre
+	
+End Sub
+
+Private Sub Command3_Click()
+
+  Dim OuputDir As String
+	
+  OutputDir = FileDialog.BrowseFolder("Selected an Output Directory for Dyre File")
+	
+  Me.Text1.SetFocus
+  Me.Text1.Text = OutputDir
+
+End Sub

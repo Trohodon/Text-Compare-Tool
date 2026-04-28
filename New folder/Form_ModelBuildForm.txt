@@ -1,0 +1,748 @@
+Option Compare Database
+
+Dim QueueCount As Integer
+Dim UseQueue As Boolean
+
+'===========================================================
+' Queued Variables
+'===========================================================
+
+Dim FilePathQ(9) As String
+Dim baseYearQ(9) As Integer
+Dim SnapshotQ(9) As Integer
+Dim RegionalQ(9) As Boolean
+Dim busOffsetQ(9) As Long
+Dim RegionalAreaQ(9) As Integer
+Dim ZoneOffsetQ(9) As Integer
+Dim ZoneConfigQ(9) As Integer
+Dim OwnerOffsetQ(9) As Integer
+Dim OverwriteAreaQ(9) As Boolean
+Dim SCEGAreaQ(9) As Integer
+Dim AutoDispatchQ(9) As Boolean
+Dim TargetSwingGenQ(9) As Double
+Dim SlackBusQ(9) As Long
+Dim combineBusesQ(9) As Boolean
+Dim PSSESeqQ(9) As Boolean
+Dim PSSEDynQ(9) As Boolean
+Dim UseOldWinterRatingsQ(9) As Boolean
+Dim GenDownQ(9) As Boolean
+Dim SysLossQ(9) As Double
+Dim TRMImportQ(9) As Boolean
+Dim TRMImDecQ(9) As Integer
+Dim TRMImDVPQ(9) As Integer
+Dim TRMImDEPQ(9) As Integer
+Dim TRMImSCQ(9) As Integer
+Dim percentOfSolarQ(9) As Integer
+Dim ignoreAfterQueueNumQ(9) As Integer
+
+Dim incNoIAQ(9) As Boolean
+Dim incERISQ(9) As Boolean
+Dim incAFSYSQ(9) As Boolean
+Dim incBusDataQ(9) As Boolean
+Dim incShuntDataQ(9) As Boolean
+Dim incBranchDataQ(9) As Boolean
+Dim incTfrmDataQ(9) As Boolean
+Dim incLoadDataQ(9) As Boolean
+Dim incGenDataQ(9) As Boolean
+Dim incAngleFixQ(9) As Boolean
+
+Dim snapDateQ(9) As Date
+Dim snapSeasonQ(9) As String
+Dim SnapLoadQ(9) As Integer
+Dim SnapTypeQ(9) As String
+Dim SnapIntORQ(9) As String
+Dim ContFacStudyQ(9) As Boolean
+Dim ContFacDateQ(9) As Date
+
+Dim projectsSubsetQ(9) As Boolean
+Dim projectsStartDateQ(9) As Date
+Dim projectsEndDateQ(9) As Date
+
+Dim PSSESavQ(9) As Boolean
+Dim PWAuxQ(9) As Boolean
+Dim PSSEVer33HigherQ(9) As Boolean
+Dim PSSECTGQ(9) As Boolean
+Dim PSSEDynQ(9) As Boolean
+Dim PSSESeqQ(9) As Boolean
+
+Dim ChannelsQ(9) As Boolean
+Dim SlackBusQ(9) As Long
+
+Dim PWGMDAuxQ(9) As Boolean
+Dim IncludeAuxSeqQ(9) As Boolean
+Dim IncludeAuxCTGQ(9) As Boolean
+Dim IncludeAuxdLatLongsQ(9) As Boolean
+
+Dim combineBusesQ(9) As Boolean
+Dim GenDownQ(9) As Boolean
+Dim ShortCircuitQ(9) As Boolean
+
+'===========================================================
+' Other Variables
+'===========================================================
+
+Dim FilePath As String
+Dim dbQ As DAO.Database
+Dim SnapshotsQ As DAO.Recordset
+Dim SnapshotNameQ(9) As String
+
+
+'===========================================================
+' Output Directory Picker
+'===========================================================
+
+Private Sub btnOutputDir_Click()
+
+    Dim OutputDir As String
+
+    With Application.FileDialog(msoFileDialogFolderPicker)
+        .Title = "Please Select an Output Directory for Auto-generated Files"
+
+        If Dir(txtOutputDir.Value, vbDirectory) <> vbNullString Then
+            .InitialFileName = txtOutputDir.Value
+        Else
+            .InitialFileName = "C:"
+        End If
+
+        If .Show = -1 Then
+            'ok clicked
+            OutputDir = .SelectedItems(1)
+            Me.txtOutputDir.SetFocus
+            Me.txtOutputDir.Text = OutputDir
+        Else
+            'do nothing, user clicked cancel
+        End If
+    End With
+
+End Sub
+
+
+'===========================================================
+' Build Files Button
+'===========================================================
+
+Private Sub btnBuildFiles_Click()
+
+    If Not UseQueue Then
+
+        'Reminder for multiple models mod
+        If Me.chkPSSESav.Value Then
+            If MsgBox("You have selected to write out a PSSE Python Script. Do you wish to continue?", vbYesNo, "Output Selection") = vbNo Then
+                Exit Sub
+            End If
+        ElseIf Me.chkPWAux.Value Then
+            If MsgBox("You have selected to write out a PowerWorld .aux file. Do you wish to continue?", vbYesNo, "Output Selection") = vbNo Then
+                Exit Sub
+            End If
+        End If
+
+        '=======================================================
+        ' Declare business variables
+        '=======================================================
+
+        Dim OutputDir As String, SQL As String
+        Dim FilenamePrefix As String
+        Dim FilenameSuffix As String
+
+        Dim Snapshot As Integer
+        Dim snapDate As Date
+        Dim snapSeason As String
+        Dim SnapLoad As Integer
+        Dim SnapType As String
+        Dim SnapIntOR As String
+        Dim ContFacStudy As Boolean
+        Dim ContFacDate As Date
+
+        Dim baseYear As Double
+        Dim SysLoss As Double
+        Dim Regional As Boolean
+        Dim busOffset As Long
+        Dim RegionalArea As Integer
+        Dim ZoneOffset As Integer
+        Dim ZoneConfig As Integer
+        Dim OwnerOffset As Integer
+        Dim OverwriteArea As Boolean
+        Dim SCEGArea As Integer
+        Dim AutoDispatch As Boolean
+        Dim TargetSwingGen As Double
+
+        Dim UseOldWinterRatings As Boolean
+        Dim UseSeasonalRatings As Boolean
+        Dim UseWinPeakRatings As Boolean
+        Dim UseOpsPlanWinRatings As Boolean
+        Dim UseSpringRatings As Boolean
+        Dim UseNewSummerRatings As Boolean
+        Dim UseFallRatings As Boolean
+
+        Dim TRMImport As Boolean
+        Dim TRMImDec As Integer
+        Dim TRMImDVP As Integer
+        Dim TRMImDEP As Integer
+        Dim TRMImSC As Integer
+
+        Dim incSolar As Boolean
+        Dim percentOfSolar As Integer
+        Dim ignoreAfterQueueNum As Integer
+
+        Dim incNoIA As Boolean
+        Dim incERIS As Boolean
+        Dim incAFSYS As Boolean
+
+        Dim incBusData As Boolean
+        Dim incShuntData As Boolean
+        Dim incBranchData As Boolean
+        Dim incTfrmData As Boolean
+        Dim incLoadData As Boolean
+        Dim incGenData As Boolean
+
+        Dim chkSolarKMLOutput As Boolean
+
+        Dim PSSESav As Boolean
+        Dim PSSEVer33Higher As Boolean
+        Dim PWAux As Boolean
+
+        Dim PSSECTG As Boolean
+        Dim PSSEDyn As Boolean
+        Dim PSSESeq As Boolean
+
+        Dim Channels As Boolean
+        Dim SlackBus As Long
+
+        Dim PWGMDAux As Boolean
+        Dim IncludeAuxSeq As Boolean
+        Dim IncludeAuxCTG As Boolean
+        Dim IncludeAuxdLatLongs As Boolean
+
+        Dim combineBuses As Boolean
+        Dim GenDown As Boolean
+        Dim ShortCircuit As Boolean
+
+        '=======================================================
+        ' Get form data
+        '=======================================================
+
+        DoCmd.SetWarnings False
+
+        Me.txtOutputDir.SetFocus
+        OutputDir = Me.txtOutputDir.Text
+
+        If Dir(OutputDir, vbDirectory) = vbNullString Then
+            On Error GoTo MkDirFail
+            MkDir OutputDir
+            exitMsg = "Problem encountered attempting to make directory " & OutputDir & ". Quitting."
+            On Error GoTo -1
+        End If
+
+        FilenamePrefix = txtFilenamePrefix.Value
+        Me.txtFilenameSuffix.SetFocus
+        FilenameSuffix = txtFilenameSuffix.Text
+
+        snapDate = Me.SnapShotDatePicker.Value
+
+        If IsNull(Me.ComboSnapShotSeason.Value) Then
+            MsgBox "You must enter a Snapshot Season"
+            Exit Sub
+        End If
+
+        snapSeason = Me.ComboSnapShotSeason.Value
+
+        '=======================================================
+        ' Continue Build Logic (Queue Handling)
+        '=======================================================
+
+        Dim counter As Integer
+        counter = 0
+
+        exitMsg = "Model Data Written to:"
+
+        For i = 0 To QueueCount
+
+            index = counter
+
+            DoCmd.SetWarnings False
+
+            Set dbQ = CurrentDb()
+            Set SnapshotsQ = dbQ.OpenRecordset("Snapshots", dbOpenDynaset, dbSeeChanges)
+
+            SnapshotsQ.MoveLast
+            SnapshotsQ.MoveFirst
+
+            SQL = "UPDATE Snapshots SET [Selected] = '-1'"
+            DoCmd.RunSQL SQL
+
+            ' Next Section added for CF Mod Updates model snapshot with CF values if selected
+            If ContFacStudyQ(index) Then
+                SQL = "UPDATE Snapshots SET [ContFacDate] = #" & month(ContFacDateQ(index)) & "/" & day(ContFacDateQ(index)) & "/" & Year(ContFacDateQ(index)) & "#, [Contingent Facility] = '-1'"
+                DoCmd.RunSQL SQL
+            Else
+                SQL = "UPDATE Snapshots SET [ContFacDate] = #0/0/00#, [Contingent Facility] = '0'"
+                DoCmd.RunSQL SQL
+            End If
+
+            While Not SnapshotsQ.EOF
+
+                If SnapshotsQ.Fields("Selected") Then
+
+                    Snapshot = SnapshotsQ.Fields("model_index")
+
+                    SQL = "UPDATE Snapshots SET [model_name] = '" & _
+                          Right(Year(snapDateQ(index)), 2) & snapSeasonQ(index) & _
+                          "', [year] = '" & Year(snapDateQ(index)) & _
+                          "', [system_load_MW] = '" & SnapLoadQ(index) & _
+                          "', [season] = '" & snapSeasonQ(index) & _
+                          "', [date] = '" & month(snapDateQ(index)) & "/" & day(snapDateQ(index)) & "/" & Year(snapDateQ(index)) & _
+                          "', [psse_header1] = '" & Year(snapDateQ(index)) & _
+                          "', [psse_header2] = '" & Year(snapDateQ(index)) & snapSeasonQ(index) & _
+                          "' WHERE [model_index] = " & Snapshot
+
+                    DoCmd.RunSQL SQL
+
+                    If Right(snapSeasonQ(index), 1) = "W" And month(snapDateQ(index)) > 12 Then
+                        SQL = "UPDATE Snapshots SET [model_name] = '" & _
+                              Right(Year(snapDateQ(index)), 2) - 1 & snapSeasonQ(index) & "'"
+                        DoCmd.RunSQL SQL
+                    End If
+
+                Else
+                    SnapshotsQ.Delete
+                End If
+
+                SnapshotsQ.MoveNext
+
+            Wend
+
+            SnapshotsQ.Close
+            DoCmd.SetWarnings True
+
+            '=======================================================
+            ' Write Outputs
+            '=======================================================
+
+            If PSSESavQ(counter) Then
+
+                If ModelWriter.WriteOutFullModel( _
+                    FilePathQ(counter), baseYearQ(counter), SnapshotQ(counter), RegionalQ(counter), _
+                    busOffsetQ(counter), RegionalAreaQ(counter), ZoneOffsetQ(counter), ZoneConfigQ(counter), _
+                    OwnerOffsetQ(counter), OverwriteAreaQ(counter), SCEGAreaQ(counter), AutoDispatchQ(counter), _
+                    TargetSwingGenQ(counter), SlackBusQ(counter), combineBusesQ(counter), _
+                    PSSESeqQ(counter), PSSEDynQ(counter), UseOldWinterRatingsQ(counter), _
+                    GenDownQ(counter), SysLossQ(counter), TRMImportQ(counter), TRMImDecQ(counter), _
+                    TRMImDVPQ(counter), TRMImDEPQ(counter), TRMImSCQ(counter), _
+                    incSolarQ(counter), percentOfSolarQ(counter), ignoreAfterQueueNumQ(counter), _
+                    incNoIAQ(counter), incAFSYSQ(counter), incERISQ(counter), _
+                    incBusDataQ(counter), incShuntDataQ(counter), incBranchDataQ(counter), _
+                    incTfrmDataQ(counter), incLoadDataQ(counter), incGenDataQ(counter), _
+                    True, snapDateQ(counter), snapSeasonQ(counter), projectsSubsetQ(counter), _
+                    projectsStartDateQ(counter), projectsEndDateQ(counter), _
+                    PSSEVer33HigherQ(counter)) Then
+
+                    exitMsg = exitMsg & FilePathQ(counter) & "; "
+
+                Else
+                    exitMsg = "Did not complete model write-out. Something is broken. Probably should let an expert know."
+                End If
+
+            ElseIf PWAuxQ(counter) Then
+
+                If AuxWriter.WriteOutFullModel( _
+                    FilePathQ(counter), baseYearQ(counter), SnapshotQ(counter), RegionalQ(counter), _
+                    busOffsetQ(counter), RegionalAreaQ(counter), ZoneOffsetQ(counter), ZoneConfigQ(counter), _
+                    OwnerOffsetQ(counter), OverwriteAreaQ(counter), SCEGAreaQ(counter), AutoDispatchQ(counter), _
+                    TargetSwingGenQ(counter), SlackBusQ(counter), combineBusesQ(counter), _
+                    PSSESeqQ(counter), PSSEDynQ(counter), UseOldWinterRatingsQ(counter), _
+                    GenDownQ(counter), SysLossQ(counter), TRMImportQ(counter), TRMImDecQ(counter), _
+                    TRMImDVPQ(counter), TRMImDEPQ(counter), TRMImSCQ(counter), _
+                    incSolarQ(counter), percentOfSolarQ(counter), ignoreAfterQueueNumQ(counter), _
+                    incNoIAQ(counter), incAFSYSQ(counter), incERISQ(counter), _
+                    incBusDataQ(counter), incShuntDataQ(counter), incBranchDataQ(counter), _
+                    incTfrmDataQ(counter), incLoadDataQ(counter), incGenDataQ(counter), _
+                    False, snapDateQ(counter), snapSeasonQ(counter), projectsSubsetQ(counter), _
+                    projectsStartDateQ(counter), projectsEndDateQ(counter)) Then
+
+                    exitMsg = exitMsg & FilePathQ(counter) & "; "
+
+                Else
+                    exitMsg = "Did not complete model write-out. Something is broken. Probably should let an expert know."
+                End If
+
+            End If
+
+            If chkSolarKMLOutputQ(counter) Then
+                Call ModelWriter.createSolarKMLSub
+            End If
+
+            If PWGMDAuxQ(counter) Then
+                Call RawWriter.WritePWGMDData(FilePathQ(counter), SnapshotQ(counter), busOffsetQ(counter), combineBusesQ(counter), percentOfSolarQ(counter))
+            End If
+
+            If IncludeAuxCTGQ(counter) Then
+                Call ModelWriter.UpdateDeviceData
+                Call RawWriter.WritePWBFile(FilePathQ(counter), SnapshotQ(counter), RegionalQ(counter), busOffsetQ(counter), combineBusesQ(counter))
+            End If
+
+            If IncludeAuxdLatLongsQ(counter) Then
+                Call RawWriter.WriteLatLongsAux(FilePathQ(counter), SnapshotQ(counter), RegionalQ(counter), busOffsetQ(counter), combineBusesQ(counter))
+            End If
+
+            '=======================================================
+            ' Reset Snapshots
+            '=======================================================
+
+            DoCmd.SetWarnings False
+
+            SQL = "UPDATE Snapshots SET [model_name] = '" & Right(Year(Now()), 2) & snapSeasonQ(counter) & _
+                  "', [year] = '" & Year(Now()) & _
+                  "', [date] = '" & month(Now()) & "/" & day(Now()) & "/" & Year(Now()) & "'"
+
+            DoCmd.RunSQL SQL
+
+            DoCmd.SetWarnings True
+
+            counter = counter + 1
+
+        Next
+
+        Call ClearQueue
+
+    End If
+
+
+MkDirFail:
+    MsgBox exitMsg
+End Sub
+
+
+'=======================================================
+' Set up Snapshots Table
+'=======================================================
+
+Dim db As DAO.Database
+Dim Snapshots As DAO.Recordset
+
+DoCmd.SetWarnings False
+
+snapDate = Me.SnapShotDatePicker.Value
+
+If IsNull(Me.ComboSnapShotSeason.Value) Then
+    Exit Sub
+End If
+
+' Set snapshot up
+If IsNull(Me.SnapShotLoad.Value) Then
+    Exit Sub
+End If
+
+SnapLoad = Me.SnapShotLoad.Value
+SnapType = Me.ComboSnapShotType.Value
+
+If IsNull(Me.ComboSnapShotType.Value) Then
+    Exit Sub
+End If
+
+On Error Resume Next
+SnapIntOR = Me.SnapShotIntOR.Value
+On Error GoTo -1
+
+Set db = CurrentDb()
+Set Snapshots = db.OpenRecordset("Snapshots", dbOpenDynaset, dbSeeChanges)
+
+Snapshots.MoveLast
+Snapshots.MoveFirst
+
+SQL = "UPDATE Snapshots SET [Selected] = '-1'"
+DoCmd.RunSQL SQL
+
+While Not Snapshots.EOF
+
+    If Snapshots.Fields("Selected") Then
+
+        Snapshot = Snapshots.Fields("model_index")
+
+        SQL = "UPDATE Snapshots SET [model_name] = '" & _
+              Right(Year(snapDate), 2) & snapSeason & _
+              "', [year] = '" & Year(snapDate) & _
+              "', [system_load_MW] = '" & SnapLoad & _
+              "', [season] = '" & snapSeason & _
+              "', [date] = '" & month(snapDate) & "/" & day(snapDate) & "/" & Year(snapDate) & _
+              "', [psse_header1] = '" & Year(snapDate) & _
+              "', [psse_header2] = '" & Year(snapDate) & snapSeason & _
+              "' WHERE [model_index] = " & Snapshot
+
+        DoCmd.RunSQL SQL
+
+        If Right(snapSeason, 1) = "W" And month(snapDate) > 12 Then
+            SQL = "UPDATE Snapshots SET [model_name] = '" & _
+                  Right(Year(snapDate), 2) - 1 & snapSeason & "'"
+            DoCmd.RunSQL SQL
+        End If
+
+    Else
+        Snapshots.Delete
+    End If
+
+    Snapshots.MoveNext
+
+Wend
+
+Snapshots.Close
+
+End Sub
+
+
+'=======================================================
+' Add to Queue Button
+'=======================================================
+
+Private Sub BtnAddQueue_Click()
+
+If Me.chkGenDown.Value Or Me.CheckContFacStudy.Value Then
+    MsgBox ("Gen Down and Contingent Facilities Studies are currently not supported for Multiple Model Queue.")
+    Exit Sub
+End If
+
+VarLoadFail = False
+Dim ListSuffix As String
+
+If Me.chkPSSESav.Value Then
+    If MsgBox("You have selected to write out a PSSE Python Script. Do you wish to continue?", vbYesNo, "Output Selection") = vbNo Then
+        Exit Sub
+    End If
+    ListSuffix = ".py"
+
+ElseIf Me.chkPWAux.Value Then
+    If MsgBox("You have selected to write out a PowerWorld .aux file. Do you wish to continue?", vbYesNo, "Output Selection") = vbNo Then
+        Exit Sub
+    End If
+    ListSuffix = ".aux"
+End If
+
+QueueCount = ModelQueue.ListCount
+
+If QueueCount < 10 Then
+
+    SetQueuedVariables (QueueCount)
+
+    If VarLoadFail Then Exit Sub
+
+    If Me.ComboSnapShotSeason.Value = "W" And month(Me.SnapShotDatePicker) <> 12 Then
+        ModelQueue.AddItem Item:=Right(Year(Me.SnapShotDatePicker.Value) - 1, 2) & Me.ComboSnapShotSeason.Value & ListSuffix
+    Else
+        ModelQueue.AddItem Item:=Right(Year(Me.SnapShotDatePicker.Value), 2) & Me.ComboSnapShotSeason.Value & ListSuffix
+    End If
+
+Else
+    MsgBox ("Queue is limited to 10 entries.")
+End If
+
+UseQueue = True
+Me.Refresh
+
+End Sub
+
+
+'=======================================================
+' Clear Queue
+'=======================================================
+
+Private Sub BtnClearQueue_Click()
+    Call ClearQueue
+End Sub
+
+Private Sub ClearQueue()
+
+Dim intItemsInList As Integer
+Dim intCounter As Integer
+
+intItemsInList = Me!ModelQueue.ListCount
+
+For intCounter = 0 To intItemsInList - 1
+    Me!ModelQueue.RemoveItem 0
+Next
+
+UseQueue = False
+
+MsgBox ("Model Build Queue Cleared.")
+
+Me.Refresh
+
+End Sub
+
+
+'=======================================================
+' Set Queued Variables
+'=======================================================
+
+Private Sub SetQueuedVariables(index As Integer)
+
+DoCmd.SetWarnings False
+
+' Get form data
+Me.txtOutputDir.SetFocus
+OutputDirQ(index) = Me.txtOutputDir.Text
+
+If Dir(OutputDirQ(index), vbDirectory) = vbNullString Then
+    On Error GoTo MkDirFail
+    MkDir OutputDirQ(index)
+    exitMsg = "Problem encountered attempting to make directory " & OutputDirQ(index) & ". Quitting."
+    On Error GoTo -1
+End If
+
+FilenamePrefixQ(index) = Me.txtFilenamePrefix.Value
+Me.txtFilenameSuffix.SetFocus
+FilenameSuffixQ(index) = Me.txtFilenameSuffix.Text
+
+snapDateQ(index) = Me.SnapShotDatePicker.Value
+
+If IsNull(Me.ComboSnapShotSeason.Value) Then
+    MsgBox ("You must enter a Snapshot Season")
+    VarLoadFail = True
+    Exit Sub
+End If
+
+snapSeasonQ(index) = Me.ComboSnapShotSeason.Value
+
+If snapSeasonQ(index) = "W" Then
+    SnapshotNameQ(index) = Right(Year(snapDateQ(index)) - 1, 2) & snapSeasonQ(index)
+Else
+    SnapshotNameQ(index) = Right(Year(snapDateQ(index)), 2) & snapSeasonQ(index)
+End If
+
+projectsSubsetQ(index) = chkProjectsOutput.Value
+
+If projectsSubsetQ(index) Then
+    projectsStartDateQ(index) = Me.ProjectsStartDatePicker.Value
+    projectsEndDateQ(index) = Me.ProjectsEndDatePicker.Value
+End If
+
+' Set snapshot up
+If IsNull(Me.SnapShotLoad.Value) Then
+    MsgBox ("You must enter a Snapshot Load value")
+    VarLoadFail = True
+    Exit Sub
+End If
+
+SnapLoadQ(index) = Me.SnapShotLoad.Value
+
+SnapTypeQ(index) = Me.ComboSnapShotType.Value
+
+If IsNull(Me.ComboSnapShotType.Value) Then
+    MsgBox ("You must enter a Snapshot Type")
+    VarLoadFail = True
+    Exit Sub
+End If
+
+ContFacStudyQ(index) = Me.CheckContFacStudy.Value
+ContFacDateQ(index) = Me.CFDatePicker.Value
+
+If ContFacStudyQ(index) = -1 And CDate(ContFacDateQ(index)) >= CDate(snapDateQ(index)) Then
+    MsgBox ("You must enter a Base Date for the Contingent Facilities Study that is earlier than the Snapshot Date")
+    Me.CFDatePicker.SetFocus
+    Exit Sub
+End If
+
+If IsNull(Me.txtBaseYear.Value) Then
+    MsgBox ("You must enter a Base Year")
+    Exit Sub
+End If
+
+baseYearQ(index) = Me.txtBaseYear.Value
+
+If IsNull(Me.txtSysLoss.Value) Then
+    MsgBox ("You must enter a Sys Loss%")
+    Exit Sub
+End If
+
+SysLossQ(index) = Me.txtSysLoss.Value
+
+RegionalQ(index) = Me.chkRegional.Value
+busOffsetQ(index) = Me.txtBusOffset.Value
+RegionalAreaQ(index) = Me.txtRegionalArea.Value
+ZoneOffsetQ(index) = Me.txtZoneOffset.Value
+OwnerOffsetQ(index) = Me.txtOwnerOffset.Value
+ZoneConfigQ(index) = Me.FrameZones.Value
+OverwriteAreaQ(index) = Me.chkOverwriteArea.Value
+SCEGAreaQ(index) = Me.txtSCEGArea.Value
+
+AutoDispatchQ(index) = Me.chkAutoDispatch.Value
+TargetSwingGenQ(index) = CDbl(Me.txtTargetSwingGen.Value)
+
+UseOldWinterRatingsQ(index) = Me.chkUseOldWinterRatings.Value
+UseSeasonalRatingsQ(index) = Me.chkUseSeasonalRatings.Value
+
+TRMImportQ(index) = Me.chkTRMImport.Value
+TRMImDecQ(index) = Me.txtTRMImDec.Value
+TRMImDVPQ(index) = Me.txtTRMImDVP.Value
+TRMImDEPQ(index) = Me.txtTRMImDEP.Value
+TRMImSCQ(index) = Me.txtTRMImSC.Value
+
+incSolarQ(index) = Me.CheckIncludeSolar.Value
+
+If Not incSolarQ(index) Then
+    percentOfSolarQ(index) = 0
+    ignoreAfterQueueNumQ(index) = 9999
+Else
+    percentOfSolarQ(index) = Me.TextPercSolarPeak.Value
+    ignoreAfterQueueNumQ(index) = Me.TextIgnoreAfterQueueNum.Value
+End If
+
+incNoIAQ(index) = Me.CheckNoIA.Value
+incERISQ(index) = Me.CheckERIS.Value
+incAFSYSQ(index) = Me.CheckAFSys.Value
+
+incBusDataQ(index) = Me.CheckIncBusData.Value
+incShuntDataQ(index) = Me.CheckIncShuntData.Value
+incBranchDataQ(index) = Me.CheckIncBranchData.Value
+incTfrmDataQ(index) = Me.CheckIncTfrmData.Value
+incLoadDataQ(index) = Me.CheckIncLoadData.Value
+incGenDataQ(index) = Me.CheckIncGenData.Value
+
+chkSolarKMLOutputQ(index) = Me.chkSolarKMLOutput.Value
+
+PSSESavQ(index) = Me.chkPSSESav.Value
+PSSEVer33HigherQ(index) = Me.chkPSSEVer33Higher.Value
+PWAuxQ(index) = Me.chkPWAux.Value
+
+PSSESeqQ(index) = Me.chkPSSESeq.Value
+PSSEDynQ(index) = Me.chkPSSEDyn.Value
+
+SlackBusQ(index) = Me.cmbSlackBus.Value
+CombineBusesQ(index) = Me.chkCombineBuses.Value
+GenDownQ(index) = Me.chkGenDown.Value
+PWGMDAuxQ(index) = Me.chkPWGMD.Value
+
+' Build file path
+FilePathQ(index) = OutputDirQ(index)
+
+If Right(OutputDirQ(index), 1) <> "\" Then
+    FilePathQ(index) = FilePathQ(index) & "\"
+End If
+
+FilePathQ(index) = FilePathQ(index) & FilenamePrefixQ(index) & SnapshotNameQ(index)
+
+If GenDownQ(index) Then
+    FilePathQ(index) = FilePathQ(index) & " GD"
+End If
+
+If FilenameSuffixQ(index) <> "" Then
+    FilePathQ(index) = FilePathQ(index) & " "
+End If
+
+If TRMImportQ(index) And FilenameSuffixQ(index) = "" Then
+    FilePathQ(index) = FilePathQ(index) & " TRM"
+ElseIf TRMImportQ(index) Then
+    FilePathQ(index) = FilePathQ(index) & " TRM "
+End If
+
+If projectsSubsetQ(index) And FilenameSuffixQ(index) = "" Then
+    FilePathQ(index) = FilePathQ(index) & " projectSubset"
+ElseIf projectsSubsetQ(index) Then
+    FilePathQ(index) = FilePathQ(index) & " projectSubset "
+End If
+
+FilePathQ(index) = FilePathQ(index) & FilenameSuffixQ(index)
+
+MkDirFail:
+    MsgBox exitMsg
+    MsgBox (snapSeasonQ(index) & " / " & FilePathQ(index))
+
+End Sub
