@@ -1,97 +1,95 @@
 Option Compare Database
-
 Dim QueueCount As Integer
-Dim UseQueue As Boolean
+  Dim UseQueue As Boolean
+'(FilePath, baseYear, Snapshot, Regional, busOffset, RegionalArea, ZoneOffset, ZoneConfig, OwnerOffset, OverwriteArea, _
+        SCEGArea, AutoDispatch, TargetSwingGen, SlackBus, combineBuses, PSSESeq, PSSEDyn, UseOldWinterRatings, GenDown, SysLoss, TRMImport, _
+		TRMImDec, TRMImDVP, TRMImDEP, TRMImSC, incSolar, percentOfSolar, ignoreAfterQueueNum, incNoIA, incAFSYS, incERIS, incBusData, incShuntData, incBranchData, incTfrmData, _
+		incLoadData, incGenData, False, snapDate, snapSeason, projectSubset, projectsStartDate, projectsEndDate)
+  Dim FilePathQ(9) As String
+  Dim baseYearQ(9) As Integer
+  Dim SnapshotQ(9) As Integer
+  Dim RegionalQ(9) As Boolean
+  Dim busOffsetQ(9) As Long
+  Dim RegionalAreaQ(9) As Integer
+  Dim ZoneOffsetQ(9) As Integer
+  Dim ZoneConfigQ(9) As Integer
+  Dim OwnerOffsetQ(9) As Integer
+  Dim OverwriteAreaQ(9) As Boolean
+  Dim SCEGAreaQ(9) As Integer
+  Dim AutoDispatchQ(9) As Boolean
+  Dim TargetSwingGenQ(9) As Double
+  Dim SlackBusQ(9) As Long
+  Dim combineBusesQ(9) As Boolean
+  Dim PSSESeqQ(9) As Boolean
+  Dim PSSEDynQ(9) As Boolean
+  Dim UseOldWinterRatingsQ(9) As Boolean
+  Dim GenDownQ(9) As Boolean
+  Dim SysLossQ(9) As Double
+  Dim TRMImportQ(9) As Boolean
+  Dim TRMImDecQ(9) As Integer
+  Dim TRMImDVPQ(9) As Integer
+  Dim TRMImDEPQ(9) As Integer
+  Dim TRMImSCQ(9) As Integer
+  Dim percentOfSolarQ(9) As Integer
+  Dim ignoreAfterQueueNumQ(9) As Integer
 
-'===========================================================
-' Queued Variables
-'===========================================================
+  Dim incNoIAQ(9) As Boolean
+  Dim incERISQ(9) As Boolean
+  Dim incAFSYSQ(9) As Boolean
+  Dim incBusDataQ(9) As Boolean
+  Dim incShuntDataQ(9) As Boolean
+  Dim incBranchDataQ(9) As Boolean
+  Dim incTfrmDataQ(9) As Boolean
+  Dim incLoadDataQ(9) As Boolean
+  Dim incGenDataQ(9) As Boolean
+  Dim incAngleFixQ(9) As Boolean
 
-Dim FilePathQ(9) As String
-Dim baseYearQ(9) As Integer
-Dim SnapshotQ(9) As Integer
-Dim RegionalQ(9) As Boolean
-Dim busOffsetQ(9) As Long
-Dim RegionalAreaQ(9) As Integer
-Dim ZoneOffsetQ(9) As Integer
-Dim ZoneConfigQ(9) As Integer
-Dim OwnerOffsetQ(9) As Integer
-Dim OverwriteAreaQ(9) As Boolean
-Dim SCEGAreaQ(9) As Integer
-Dim AutoDispatchQ(9) As Boolean
-Dim TargetSwingGenQ(9) As Double
-Dim SlackBusQ(9) As Long
-Dim combineBusesQ(9) As Boolean
-Dim PSSESeqQ(9) As Boolean
-Dim PSSEDynQ(9) As Boolean
-Dim UseOldWinterRatingsQ(9) As Boolean
-Dim GenDownQ(9) As Boolean
-Dim SysLossQ(9) As Double
-Dim TRMImportQ(9) As Boolean
-Dim TRMImDecQ(9) As Integer
-Dim TRMImDVPQ(9) As Integer
-Dim TRMImDEPQ(9) As Integer
-Dim TRMImSCQ(9) As Integer
-Dim percentOfSolarQ(9) As Integer
-Dim ignoreAfterQueueNumQ(9) As Integer
+  Dim snapDateQ(9) As Date
+  Dim snapSeasonQ(9) As String
+  Dim SnapLoadQ(9) As Integer
+  Dim SnapTypeQ(9) As String
+  Dim SnapIntORQ(9) As String
+  Dim ContFacStudyQ(9) As Boolean
+  Dim ContFacDateQ(9) As Date
 
-Dim incNoIAQ(9) As Boolean
-Dim incERISQ(9) As Boolean
-Dim incAFSYSQ(9) As Boolean
-Dim incBusDataQ(9) As Boolean
-Dim incShuntDataQ(9) As Boolean
-Dim incBranchDataQ(9) As Boolean
-Dim incTfrmDataQ(9) As Boolean
-Dim incLoadDataQ(9) As Boolean
-Dim incGenDataQ(9) As Boolean
-Dim incAngleFixQ(9) As Boolean
+  Dim projectsSubsetQ(9) As Boolean
+  Dim projectsStartDateQ(9) As Date
+  Dim projectsEndDateQ(9) As Date
 
-Dim snapDateQ(9) As Date
-Dim snapSeasonQ(9) As String
-Dim SnapLoadQ(9) As Integer
-Dim SnapTypeQ(9) As String
-Dim SnapIntORQ(9) As String
-Dim ContFacStudyQ(9) As Boolean
-Dim ContFacDateQ(9) As Date
+  Dim PSSESavQ(9) As Boolean
+  Dim PWAuxQ(9) As Boolean
+  Dim PSSEVer33HigherQ(9) As Boolean
+  Dim PSSECTGQ(9) As Boolean
+  Dim PSSEDynQ(9) As Boolean
+  Dim PSSESeqQ(9) As Boolean
 
-Dim projectsSubsetQ(9) As Boolean
-Dim projectsStartDateQ(9) As Date
-Dim projectsEndDateQ(9) As Date
+  Dim ChannelsQ(9) As Boolean
+  Dim SlackBusQ(9) As Long
 
-Dim PSSESavQ(9) As Boolean
-Dim PWAuxQ(9) As Boolean
-Dim PSSEVer33HigherQ(9) As Boolean
-Dim PSSECTGQ(9) As Boolean
-Dim PSSEDynQ(9) As Boolean
-Dim PSSESeqQ(9) As Boolean
+  Dim PWGMDAuxQ(9) As Boolean
+  Dim IncludeAuxSeqQ(9) As Boolean
+  Dim IncludeAuxCTGQ(9) As Boolean
+  Dim IncludeAuxdLatLongsQ(9) As Boolean
 
-Dim ChannelsQ(9) As Boolean
-Dim SlackBusQ(9) As Long
-
-Dim PWGMDAuxQ(9) As Boolean
-Dim IncludeAuxSeqQ(9) As Boolean
-Dim IncludeAuxCTGQ(9) As Boolean
-Dim IncludeAuxdLatLongsQ(9) As Boolean
-
-Dim combineBusesQ(9) As Boolean
-Dim GenDownQ(9) As Boolean
-Dim ShortCircuitQ(9) As Boolean
+  Dim combineBusesQ(9) As Boolean
+  Dim GenDownQ(9) As Boolean
+  Dim ShortCircuitQ(9) As Boolean
 
 '===========================================================
 ' Other Variables
 '===========================================================
 
-Dim FilePath As String
-Dim dbQ As DAO.Database
-Dim SnapshotsQ As DAO.Recordset
-Dim SnapshotNameQ(9) As String
+  Dim FilePath As String
+  Dim dbQ As DAO.Database
+  Dim SnapshotsQ As DAO.Recordset
+  Dim SnapshotNameQ(9) As String
 
 
 '===========================================================
 ' Output Directory Picker
 '===========================================================
 
-Private Sub btnOutputDir_Click()
+  Private Sub btnOutputDir_Click()
 
     Dim OutputDir As String
 
