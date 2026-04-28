@@ -1,6 +1,0 @@
-Option Compare Database
-
-Private Sub Commandl_Click()
-	ImpCalc.CalculateAllImpedances
-	
-End Sub
