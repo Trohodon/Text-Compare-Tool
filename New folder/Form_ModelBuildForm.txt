@@ -27,13 +27,15 @@ Dim QueueCount As Integer
   Dim UseNewWinPeakRatingsQ(9) As Boolean 'added 10/2023 BU
   Dim UseOpsPlnWinRatingsQ(9) As Boolean 'added 10/2023 BU
   Dim UseSpringRatingsQ(9) As Boolean 'added 10/2023 BU
-  Dim UseNewSummerRatingsQ(9) As Boolean 'added 10/2023 BU
+  Dim UseNewSumRatingsQ(9) As Boolean 'added 10/2023 BU
   Dim UseFallRatingsQ(9) As Boolean 'added 10/2023 BU
   Dim TRMImportQ(9) As Boolean
-  Dim TRMImDecQ(9) As Integer
+  Dim TRMImDECQ(9) As Integer
   Dim TRMImDVPQ(9) As Integer
   Dim TRMImDEPQ(9) As Integer
   Dim TRMImSCQ(9) As Integer
+  
+  
   Dim percentOfSolarQ(9) As Integer
   Dim ignoreAfterQueueNumQ(9) As Integer
 
@@ -71,9 +73,9 @@ Dim QueueCount As Integer
   Dim SlackBusQ(9) As Long
 
   Dim PWGMDAuxQ(9) As Boolean
-  Dim IncludeAuxSeqQ(9) As Boolean
-  Dim IncludeAuxCTGQ(9) As Boolean
-  Dim IncludeAuxdLatLongsQ(9) As Boolean
+  Dim includeAuxSeqQ(9) As Boolean
+  Dim includeAuxCTGQ(9) As Boolean
+  Dim includeAuxdLatLongsQ(9) As Boolean
 
   Dim combineBusesQ(9) As Boolean
   Dim GenDownQ(9) As Boolean
@@ -717,31 +719,28 @@ FilePathQ(index) = OutputDirQ(index)
 
 If Right(OutputDirQ(index), 1) <> "\" Then
     FilePathQ(index) = FilePathQ(index) & "\"
-End If
-
 FilePathQ(index) = FilePathQ(index) & FilenamePrefixQ(index) & SnapshotNameQ(index)
-
 If GenDownQ(index) Then
-    FilePathQ(index) = FilePathQ(index) & " GD"
-End If
+    FilePathQ(index) = FilePathQ(index) & "_GD"
 
-If FilenameSuffixQ(index) <> "" Then
-    FilePathQ(index) = FilePathQ(index) & " "
-End If
+
+If FilenameSuffixQ(index) <> "" Then _
+    FilePathQ(index) = FilePathQ(index) & "_"
+End If ' ^If GenDown Then
 
 If TRMImportQ(index) And FilenameSuffixQ(index) = "" Then
-    FilePathQ(index) = FilePathQ(index) & " TRM"
+    FilePathQ(index) = FilePathQ(index) & "_TRM"
 ElseIf TRMImportQ(index) Then
-    FilePathQ(index) = FilePathQ(index) & " TRM "
+    FilePathQ(index) = FilePathQ(index) & "_TRM_"
 End If
 
 If projectsSubsetQ(index) And FilenameSuffixQ(index) = "" Then
-    FilePathQ(index) = FilePathQ(index) & " projectSubset"
+    FilePathQ(index) = FilePathQ(index) & "_projectsSubset"
 ElseIf projectsSubsetQ(index) Then
-    FilePathQ(index) = FilePathQ(index) & " projectSubset "
+    FilePathQ(index) = FilePathQ(index) & "_projectsSubset_"
 End If
 
-FilePathQ(index) = FilePathQ(index) & FilenameSuffixQ(index)
+  FilePathQ(index) = FilePathQ(index) & FilenameSuffixQ(index)
 
 'MkDirFail:
  ' MsgBox exitMsg
