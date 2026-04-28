@@ -10,9 +10,8 @@ Dim QueueCount As Integer
   Dim FilenamePrefixQ(9) As String
   Dim FilenameSuffixQ(9) As String
   Dim SnapshotQ(9) As Integer, snapDateQ(9) As Date, snapSeasonQ(9) As String, SnapLoadQ(9) As Integer, SnapTypeQ(9) As String, SnapIntORQ(9) As String, ContFacStudyQ(9) As Boolean, ContFacDateQ(9) As Date
-  Dim FilePathQ(9) As String
   Dim baseYearQ(9) As Double
-  Dim SnapshotQ(9) As Integer
+  Dim SysLossQ(9) As Double
   Dim RegionalQ(9) As Boolean
   Dim busOffsetQ(9) As Long
   Dim RegionalAreaQ(9) As Integer
@@ -23,13 +22,13 @@ Dim QueueCount As Integer
   Dim SCEGAreaQ(9) As Integer
   Dim AutoDispatchQ(9) As Boolean
   Dim TargetSwingGenQ(9) As Double
-  Dim SlackBusQ(9) As Long
-  Dim combineBusesQ(9) As Boolean
-  Dim PSSESeqQ(9) As Boolean
-  Dim PSSEDynQ(9) As Boolean
-  Dim UseOldWinterRatingsQ(9) As Boolean
-  Dim GenDownQ(9) As Boolean
-  Dim SysLossQ(9) As Double
+  Dim UseOldWinterRatingsQ(9) As Boolean 'modified to 'old' 10/2023 BU
+  Dim UseSeasonalRatingsQ(9) As Boolean 'added 10/2023 BU
+  Dim UseNewWinPeakRatingsQ(9) As Boolean 'added 10/2023 BU
+  Dim UseOpsPlnWinRatingsQ(9) As Boolean 'added 10/2023 BU
+  Dim UseSpringRatingsQ(9) As Boolean 'added 10/2023 BU
+  Dim UseNewSummerRatingsQ(9) As Boolean 'added 10/2023 BU
+  Dim UseFallRatingsQ(9) As Boolean 'added 10/2023 BU
   Dim TRMImportQ(9) As Boolean
   Dim TRMImDecQ(9) As Integer
   Dim TRMImDVPQ(9) As Integer
@@ -744,8 +743,10 @@ End If
 
 FilePathQ(index) = FilePathQ(index) & FilenameSuffixQ(index)
 
-MkDirFail:
-    MsgBox exitMsg
-    MsgBox (snapSeasonQ(index) & " / " & FilePathQ(index))
+'MkDirFail:
+ ' MsgBox exitMsg
+'MsgBox (snapSeasonQ(index) & " , " & FilePathQ(index))
 
 End Sub
+
+
