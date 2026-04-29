@@ -785,33 +785,33 @@ Private Sub chkPWaux_Click()
         chkPSSESeq.Enabled = False
     End If
 	
-    If chkPSSESav.Enabled and chkPSSESav.Value Then
+    If chkPSSESav.Enabled And chkPSSESav.Value Then
 	    chkPSSEVer33Higher.Enabled = True
     Else
 	    chkPSSEVer33Higher.Enabled = False
     End If
 
-    CheckIncBusData.Enabled = chkPSSEaux.Value
-    CheckIncShuntData.Enabled = chkPSSEaux.Value
-    CheckIncBranchData.Enabled = chkPSSEaux.Value
-    CheckIncTfmrData.Enabled = chkPSSEaux.Value
-    CheckIncLoadData.Enabled = chkPSSEaux.Value
-    CheckIncGenData.Enabled = chkPSSEaux.Value
+    CheckIncBusData.Enabled = chkPWaux.Value
+    CheckIncShuntData.Enabled = chkPWaux.Value
+    CheckIncBranchData.Enabled = chkPWaux.Value
+    CheckIncTfmrData.Enabled = chkPWaux.Value
+    CheckIncLoadData.Enabled = chkPWaux.Value
+    CheckIncGenData.Enabled = chkPWaux.Value
 	
 End Sub
 
 Private Sub ComboSnapShotSeason_Change()  ' Can't do calculation if System Load value isn't already present
     Call setLoadValue(True)
 
-    If CheckScaleLdForSolar.Value And CheckIncludeSolar.Value And IsNumeric(SnapShotLoad.Value) Then
+    If CheckScaleLdForSolar.Value And CheckIncludeSolar.Value And IsNumeric(SnapShotLoad.Value) Then ' Can't do calculation if System Load value isn't already present
         Call setSysLdGivenSolar
     End If
 End Sub
 
-Private Sub ComboSnapShotType_Change()  ' Can't do calculation if System Load value isn't already present
+Private Sub ComboSnapShotType_Change() 
     Call setLoadValue(True)
 
-    If CheckScaleLdForSolar.Value And CheckIncludeSolar.Value And IsNumeric(SnapShotLoad.Value) Then
+    If CheckScaleLdForSolar.Value And CheckIncludeSolar.Value And IsNumeric(SnapShotLoad.Value) Then  ' Can't do calculation if System Load value isn't already present
         Call setSysLdGivenSolar
     End If
 End Sub
@@ -845,7 +845,7 @@ Private Sub SnapShotDatePicker_AfterUpdate()
 	
 	' Shouldn't need to change the slack bus to this Replacement gen anymore since load forecast was reduced. JWR - 2019/04/23
 	'     Me.cmbSlackBus.SetFocus
-    ' If SnapDate >= DateSerial(2021, 4, 30) Then ' This date corresponds to VCS2 Replacement generator online date - I should automate this by grabbing the date in the Machines table
+    ' If SnapDate >= DateSerial(2021, 4, 30) Then ' This date corresponds to VCS2 Replacement generator online date - I should probably automate this by grabbing the date in the Machines table
     '     Me.cmbSlackBus.Value = "835"
     ' Else
     '     Me.cmbSlackBus.Value = "827"
@@ -906,31 +906,31 @@ Private Sub setLoadValue(allowPercSolChange As Boolean)
     snapSeason = Me.ComboSnapShotSeason.Value
     SnapType = Me.ComboSnapShotType.Value
 
-If chkUseSeasonalRatings.Value = False Then ' Added 10/2023 BU
+If ChkUseSeasonalRatings.Value = False Then 'Added 10/2023 BU
     If Right(snapSeason, 1) = "W" Then
         Me.chkUseOldWinRatings.Value = True
     Else
         Me.chkUseOldWinRatings.Value = False
     End If
-Else ' then use seasonal ratings
+Else 'then use seasonal ratings
     Me.chkUseOldWinRatings.Value = False
 
-    If Right(snapSeason, 1) = "W" And SnapType <> "NTSG" Then ' Option 1 is Winter Peak Ratings
+    If Right(snapSeason, 1) = "W" And SnapType <> "NTSG" Then 'Option 1 is Winter Peak Ratings
         Me.SeasonalRatingsOptGroup.Value = 1
 
-    ElseIf Right(snapSeason, 1) = "W" And SnapType = "NTSG" Then ' Option 2 is Ops Planning Winter Peak Ratings
+    ElseIf Right(snapSeason, 1) = "W" And SnapType = "NTSG" Then 'Option 2 is Ops Planning Winter Peak Ratings
         Me.SeasonalRatingsOptGroup.Value = 2
 
-    ElseIf Right(snapSeason, 1) = "Z" Or Right(snapSeason, 1) = "L" Or Left(snapSeason, 1) = "D" Then ' Option 3 is Spring Ratings
+    ElseIf Right(snapSeason, 1) = "Z" Or Right(snapSeason, 1) = "L" Or Left(snapSeason, 1) = "D" Then 'Option 3 is Spring Ratings
         Me.SeasonalRatingsOptGroup.Value = 3
 
-    ElseIf Right(snapSeason, 1) = "S" Then ' Option 4 is Summer Ratings
+    ElseIf Right(snapSeason, 1) = "S" Then 'Option 4 is Summer Ratings
         Me.SeasonalRatingsOptGroup.Value = 4
 
-    ElseIf Right(snapSeason, 1) = "F" Then ' Option 5 is Fall Ratings
+    ElseIf Right(snapSeason, 1) = "F" Then 'Option 5 is Fall Ratings
         Me.SeasonalRatingsOptGroup.Value = 5
 
-    ElseIf Right(snapSeason, 1) = "H" Then ' Option 4 is Summer Ratings
+    ElseIf Right(snapSeason, 1) = "H" Then 'Option 4 is Summer Ratings
         Me.SeasonalRatingsOptGroup.Value = 4
 
     Else
@@ -938,25 +938,24 @@ Else ' then use seasonal ratings
     End If
 End If
 
-If Not chkProjectsOutput.Value Then
+If Not chkProjectsOutput.Value Then _
     SnapType = Me.ComboSnapShotType.Value
-End If
 
 If SnapType = "Sh Ckt" Then
     Me.chkPSSESeq.Value = True
 End If
 
-If SnapType = "GEN CNXN" Then
-    Me.CheckNoIA.Value = True
-Else
-    Me.CheckNoIA.Value = False
-End If
+' If SnapType = "GEN CNXN" Then
+'     Me.CheckNoIA.Value = True
+' Else
+'     Me.CheckNoIA.Value = False
+' End If
 
 On Error GoTo 0
 
 If Not chkProjectsOutput.Value Then
     SnapLoad = returnLoadValue(snapDate, snapSeason, SnapType)
-    Me.SnapShotLoad.SetFocus
+    ' Me.SnapShotLoad.SetFocus
     Me.SnapShotLoad.Value = SnapLoad
 End If
 
@@ -967,67 +966,17 @@ If allowPercSolChange Then
         percSolarGenMax = returnPercGenMax(snapSeason, "")
     End If
 
-    Me.TextPercSolarOfPeak.SetFocus
+    ' Me.TextPercSolarOfPeak.SetFocus
     Me.TextPercSolarOfPeak.Value = percSolarGenMax
 End If
 
 If Not chkProjectsOutput.Value Then
     baseYear = returnBaseYear(baseYear, Me.CheckLastYearChecked.Value)
-    Me.txtBaseYear.SetFocus
+    ' Me.txtBaseYear.SetFocus
     Me.txtBaseYear.Value = baseYear
 End If
 
 ' Set up Snapshots table based on selections in ModelBuildForm
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 Dim db As DAO.Database
 Dim Snapshots As DAO.Recordset
