@@ -531,17 +531,11 @@ Else
 
                     Snapshot = SnapshotsQ.Fields("model_index")
 
-                    SQL = "UPDATE Snapshots SET [model_name] = '" & _
-                          Right(Year(snapDateQ(index)), 2) & snapSeasonQ(index) & _
-                          "', [year] = '" & Year(snapDateQ(index)) & _
-                          "', [system_load_MW] = '" & SnapLoadQ(index) & _
-                          "', [season] = '" & snapSeasonQ(index) & _
-                          "', [date] = '" & month(snapDateQ(index)) & "/" & day(snapDateQ(index)) & "/" & Year(snapDateQ(index)) & _
-                          "', [psse_header1] = '" & Year(snapDateQ(index)) & _
-                          "', [psse_header2] = '" & Year(snapDateQ(index)) & snapSeasonQ(index) & _
-                          "' WHERE [model_index] = " & Snapshot
+                    SQL = "UPDATE Snapshots SET [model_name] = '" & Right(Year(snapDateQ(index)), 2) & snapSeasonQ(index) & "', [year] = '" & Year(snapDateQ(index)) & "', [season] = '" & snapSeasonQ(index) & "', [date] = '" _
+					& month(snapDateQ(index)) & "/" & day(snapDateQ(index)) & "/" & Year(snapDateQ(index)) & "', [system_load_MW] = '" & SnapLoadQ(index) & "', [OR_interchange_MW] = '" & SnapIntORQ(index) & "', [study] = '" & SnapTypeQ(index) _
+					& "', [psse_header1] = '" & Year(snapDateQ(index)) & "' & SnapTypeQ(index) & "', [psse_header2] = '" & Year(snapDateQ(index)) & snapSeasonQ(index) & " SCEG AREA'"
 
-                    DoCmd.RunSQL SQL
+					DoCmd.RunSQL SQL
 
                     If Right(snapSeasonQ(index), 1) = "W" And month(snapDateQ(index)) > 12 Then
                         SQL = "UPDATE Snapshots SET [model_name] = '" & _
