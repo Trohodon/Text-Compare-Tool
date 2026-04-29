@@ -529,17 +529,15 @@ Else
 
                 If SnapshotsQ.Fields("Selected") Then
 
-                    Snapshot = SnapshotsQ.Fields("model_index")
-
                     SQL = "UPDATE Snapshots SET [model_name] = '" & Right(Year(snapDateQ(index)), 2) & snapSeasonQ(index) & "', [year] = '" & Year(snapDateQ(index)) & "', [season] = '" & snapSeasonQ(index) & "', [date] = '" _
 					& month(snapDateQ(index)) & "/" & day(snapDateQ(index)) & "/" & Year(snapDateQ(index)) & "', [system_load_MW] = '" & SnapLoadQ(index) & "', [OR_interchange_MW] = '" & SnapIntORQ(index) & "', [study] = '" & SnapTypeQ(index) _
-					& "', [psse_header1] = '" & Year(snapDateQ(index)) & "' & SnapTypeQ(index) & "', [psse_header2] = '" & Year(snapDateQ(index)) & snapSeasonQ(index) & " SCEG AREA'"
+					& " " & Year(snapDateQ(index)) & "', [psse_header1] = '" & Year(snapDateQ(index)) & " " & SnapTypeQ(index) & "', [psse_header2] = '" & Year(snapDateQ(index)) & snapSeasonQ(index) & " SCEG AREA'"
 
 					DoCmd.RunSQL SQL
 
-                    If Right(snapSeasonQ(index), 1) = "W" And month(snapDateQ(index)) > 12 Then
-                        SQL = "UPDATE Snapshots SET [model_name] = '" & _
-                              Right(Year(snapDateQ(index)), 2) - 1 & snapSeasonQ(index) & "'"
+                    If Right(snapSeasonQ(index), 1) = "W" And month(snapDate) <> 12 Then
+                        SQL = "UPDATE Snapshots SET [model_name] = '" & Right(Year(snapDateQ(index)), 2) - 1 & snapSeasonQ(index) & "', [year] = '" & Year(snapDateQ(index)) - 1 & "', [study] = '" & SnapTypeQ(index) _
+						& " " & Year(snapDateQ(index)) - 1 & "', [psse_header1] = '" & Year(snapDateQ(index)) - 1 & " " & SnapTypeQ(index) & "', [psse_header2] = '" & Year(snapDateQ(index)) - 1 & snapSeasonQ(index) & " SCEG AREA'"
                         DoCmd.RunSQL SQL
                     End If
 
@@ -556,21 +554,11 @@ Else
 
             If PSSESavQ(counter) Then
 
-                If ModelWriter.WriteOutFullModel( _
-                    FilePathQ(counter), baseYearQ(counter), SnapshotQ(counter), RegionalQ(counter), _
-                    busOffsetQ(counter), RegionalAreaQ(counter), ZoneOffsetQ(counter), ZoneConfigQ(counter), _
-                    OwnerOffsetQ(counter), OverwriteAreaQ(counter), SCEGAreaQ(counter), AutoDispatchQ(counter), _
-                    TargetSwingGenQ(counter), SlackBusQ(counter), combineBusesQ(counter), _
-                    PSSESeqQ(counter), PSSEDynQ(counter), UseOldWinterRatingsQ(counter), _
-                    GenDownQ(counter), SysLossQ(counter), TRMImportQ(counter), TRMImDecQ(counter), _
-                    TRMImDVPQ(counter), TRMImDEPQ(counter), TRMImSCQ(counter), _
-                    incSolarQ(counter), percentOfSolarQ(counter), ignoreAfterQueueNumQ(counter), _
-                    incNoIAQ(counter), incAFSYSQ(counter), incERISQ(counter), _
-                    incBusDataQ(counter), incShuntDataQ(counter), incBranchDataQ(counter), _
-                    incTfrmDataQ(counter), incLoadDataQ(counter), incGenDataQ(counter), _
-                    True, snapDateQ(counter), snapSeasonQ(counter), projectsSubsetQ(counter), _
-                    projectsStartDateQ(counter), projectsEndDateQ(counter), _
-                    PSSEVer33HigherQ(counter)) Then
+                If ModelWriter.WriteOutFullModel(FilePathQ(counter), baseYearQ(counter), SnapshotQ(counter), RegionalQ(counter), busOffsetQ(counter), RegionalAreaQ(counter), ZoneOffsetQ(counter), ZoneConfigQ(counter), OwnerOffsetQ(counter), OverwriteAreaQ(counter), _
+					SCEGAreaQ(counter), AutoDispatchQ(counter), TargetSwingGenQ(counter), SlackBusQ(counter), combineBusesQ(counter), PSSESeqQ(counter), PSSEDynQ(counter), UseOldWinterRatingsQ(counter), UseSeasonalRatingsQ(counter), UseNewWinPeakRatingsQ(counter), UseOpsPlnWinRatingsQ(counter), _
+                    UseSpringRatingsQ(counter), UseNewSumRatingsQ(counter), UseFallRatingsQ(counter) , GenDownQ(counter), SysLossQ(counter), TRMImportQ(counter), TRMImDECQ(counter), TRMImDVPQ(counter), TRMImDEPQ(counter), TRMImSCQ(counter), incSolarQ(counter), percentOfSolarQ(counter), ignoreAfterQueueNumQ(counter), _
+					incNoIAQ(counter), incAffSysQ(counter), incERISQ(counter), incBusDataQ(counter), incShuntDataQ(counter), incBranchDataQ(counter), incTfmrDataQ(counter), incLoadDataQ(counter), incGenDataQ(counter), True, snapDateQ(counter), snapSeasonQ(counter), projectsSubsetQ(counter), projectsStartDateQ(counter), _
+					projectsEndDateQ(counter), PSSEVer33HigherQ(counter)) Then
 
                     exitMsg = exitMsg & FilePathQ(counter) & "; "
 
@@ -578,22 +566,13 @@ Else
                     exitMsg = "Did not complete model write-out. Something is broken. Probably should let an expert know."
                 End If
 
-            ElseIf PWAuxQ(counter) Then
+            ElseIf PWauxQ(counter) Then 'Changed to AuxWriter.WriteOutFullModel AU 12 18 19
 
-                If AuxWriter.WriteOutFullModel( _
-                    FilePathQ(counter), baseYearQ(counter), SnapshotQ(counter), RegionalQ(counter), _
-                    busOffsetQ(counter), RegionalAreaQ(counter), ZoneOffsetQ(counter), ZoneConfigQ(counter), _
-                    OwnerOffsetQ(counter), OverwriteAreaQ(counter), SCEGAreaQ(counter), AutoDispatchQ(counter), _
-                    TargetSwingGenQ(counter), SlackBusQ(counter), combineBusesQ(counter), _
-                    PSSESeqQ(counter), PSSEDynQ(counter), UseOldWinterRatingsQ(counter), _
-                    GenDownQ(counter), SysLossQ(counter), TRMImportQ(counter), TRMImDecQ(counter), _
-                    TRMImDVPQ(counter), TRMImDEPQ(counter), TRMImSCQ(counter), _
-                    incSolarQ(counter), percentOfSolarQ(counter), ignoreAfterQueueNumQ(counter), _
-                    incNoIAQ(counter), incAFSYSQ(counter), incERISQ(counter), _
-                    incBusDataQ(counter), incShuntDataQ(counter), incBranchDataQ(counter), _
-                    incTfrmDataQ(counter), incLoadDataQ(counter), incGenDataQ(counter), _
-                    False, snapDateQ(counter), snapSeasonQ(counter), projectsSubsetQ(counter), _
-                    projectsStartDateQ(counter), projectsEndDateQ(counter)) Then
+                If AuxWriter.WriteOutFullModel(FilePathQ(counter), baseYearQ(counter), SnapshotQ(counter), RegionalQ(counter), busOffsetQ(counter), RegionalAreaQ(counter), ZoneOffsetQ(counter), ZoneConfigQ(counter), OwnerOffsetQ(counter), OverwriteAreaQ(counter), _
+					SCEGAreaQ(counter), AutoDispatchQ(counter), TargetSwingGenQ(counter), SlackBusQ(counter), combineBusesQ(counter), PSSESeqQ(counter), PSSEDynQ(counter), UseOldWinterRatingsQ(counter), UseSeasonalRatingsQ(counter), UseNewWinPeakRatingsQ(counter), UseOpsPlnWinRatingsQ(counter), _
+                    UseSpringRatingsQ(counter), UseNewSumRatingsQ(counter), UseFallRatingsQ(counter) , GenDownQ(counter), SysLossQ(counter), TRMImportQ(counter), TRMImDECQ(counter), TRMImDVPQ(counter), TRMImDEPQ(counter), TRMImSCQ(counter), incSolarQ(counter), percentOfSolarQ(counter), ignoreAfterQueueNumQ(counter), _
+					incNoIAQ(counter), incAffSysQ(counter), incERISQ(counter), incBusDataQ(counter), incShuntDataQ(counter), incBranchDataQ(counter), incTfmrDataQ(counter), incLoadDataQ(counter), incGenDataQ(counter), False, snapDateQ(counter), snapSeasonQ(counter), projectsSubsetQ(counter), projectsStartDateQ(counter), _
+					projectsEndDateQ(counter)) Then
 
                     exitMsg = exitMsg & FilePathQ(counter) & "; "
 
@@ -603,15 +582,15 @@ Else
 
             End If
 
-            If chkSolarKMLOutputQ(counter) Then
+            If chkSolarKMLoutputQ(counter) Then
                 Call ModelWriter.createSolarKMLSub
             End If
 
             If PWGMDAuxQ(counter) Then
-                Call RawWriter.WritePWGMDData(FilePathQ(counter), SnapshotQ(counter), busOffsetQ(counter), combineBusesQ(counter), percentOfSolarQ(counter))
+                Call RawWriter.WritePWGMDData(FilePathQ(counter), SnapshotQ(counter), busOffsetQ(counter), combineBusesQ(counter), percentOfSolarQ(counter), ignoreAfterQueueNumQ(counter), incNoIAQ(counter), PSSEDynQ(counter), inc46kvDataQ(counter), incSolarQ(counter), RegionalQ(counter))
             End If
 
-            If IncludeAuxCTGQ(counter) Then
+            If includeAuxCTGQ(counter) Then
                 Call ModelWriter.UpdateDeviceData
                 Call RawWriter.WritePWBFile(FilePathQ(counter), SnapshotQ(counter), RegionalQ(counter), busOffsetQ(counter), combineBusesQ(counter))
             End If
