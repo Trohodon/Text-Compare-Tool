@@ -801,10 +801,24 @@ End If
 
 projectsSubsetQ(index) = chkProjectsOutput.Value
 
+If snapSeasonQ(index) = "W" Then
+    SnapshotNameQ(index) = Right(Year(snapDateQ(index)) - 1, 2) & snapSeasonQ(index)
+Else
+    SnapshotNameQ(index) = Right(Year(snapDateQ(index)), 2) & snapSeasonQ(index)
+End If
+
+projectsSubsetQ(index) = chkProjectsOutput.Value
+
 If projectsSubsetQ(index) Then
     projectsStartDateQ(index) = Me.ProjectsStartDatePicker.Value
     projectsEndDateQ(index) = Me.ProjectsEndDatePicker.Value
-End If
+
+    If snapSeasonQ(index) = "W" Then
+        SnapshotNameQ(index) = Right(Year(snapDateQ(index)) - 1, 2) & snapSeasonQ(index)
+    Else
+        SnapshotNameQ(index) = Right(Year(snapDateQ(index)), 2) & snapSeasonQ(index)
+    End If
+Else
 
 ' Set snapshot up
 If IsNull(Me.SnapShotLoad.Value) Then
@@ -823,8 +837,8 @@ If IsNull(Me.ComboSnapShotType.Value) Then
     Exit Sub
 End If
 
-ContFacStudyQ(index) = Me.CheckContFacStudy.Value
-ContFacDateQ(index) = Me.CFDatePicker.Value
+' ContFacStudyQ(index) = Me.CheckContFacStudy.Value 'Added for CF Study Mod
+'ContFacDateQ(index) = Me.CFDatePicker.Value 'Added for CF Study Mod
 
 ' If ContFacStudyQ(index) = -1 And CDate(ContFacDateQ(index)) >= CDate(snapDateQ(index)) Then
 '     MsgBox ("You must enter a Base Date for the Contingent Facilities Study that is earlier than the Snapshot Date")
