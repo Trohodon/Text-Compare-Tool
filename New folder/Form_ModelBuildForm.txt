@@ -37,12 +37,12 @@ Dim QueueCount As Integer
   
   Dim incSolarQ(9) As Boolean
   Dim percentOfSolarQ(9) As Integer, ignoreAfterQueueNumQ(9) As Integer, incNoIAQ(9) As Boolean, incERISQ(9) As Boolean, incAffSysQ(9) As Boolean
-  Dim incBusDataQ(9) As Boolean, incShuntDataQ(9) As Boolean, incBranchDataQ(9) As Boolean, incTfmrDataQ As Boolean
+  Dim incBusDataQ(9) As Boolean, incShuntDataQ(9) As Boolean, incBranchDataQ(9) As Boolean, incTfmrDataQ(9) As Boolean
   Dim incLoadDataQ(9) As Boolean, incGenDataQ(9) As Boolean, incAngleFixQ(9) As Boolean
   Dim inc46kvDataQ(9) As Boolean
-  Dim chkSolarKMLOutputQ(9) As Boolean
+  Dim chkSolarKMLoutputQ(9) As Boolean
   Dim projectsSubsetQ(9) As Boolean, projectsStartDateQ(9) As Data, projectsEndDateQ(9) As Date
-  Dim PSSESavQ(9) As Boolean, PWAuxQ(9) As Boolean, PSSEVer33HigherQ(9) As Boolean
+  Dim PSSESavQ(9) As Boolean, PWauxQ(9) As Boolean, PSSEVer33HigherQ(9) As Boolean
   Dim PSSECtgQ(9) As Boolean
   Dim PSSEDynQ(9) As Boolean
   Dim PSSESeqQ(9) As Boolean
@@ -169,7 +169,7 @@ Private Sub btnBuildFiles_Click()
 		
 		'Other Variables:
 		Dim FilePath As String
-		Dim db As DAO.Recordset
+		Dim db As DAO.Database
 		Dim Snapshots As DAO.Recordset
 		Dim SnapshotName As String
 		Dim exitMsg As String
@@ -223,7 +223,7 @@ Else
         Exit Sub
     End If
 
-    '............................................................
+
     ContFacStudy = Me.CheckContFacStudy.Value 'Added for CF Study Mod
     ContFacDate = Me.CFDatePicker.Value 'Added for CF Study Mod
     If ContFacStudy = -1 And CDate(ContFacDate) >= CDate(snapDate) Then
@@ -233,13 +233,12 @@ Else
     End If
 
     'Added for CF Study Mod to verify CF Base date is before snapshot date
-    '............................................................
 
     On Error Resume Next
     SnapIntOR = Me.SnapShotIntOR.Value
     On Error GoTo -1
 
-    DoCmd.SetWarnings False
+    ' DoCmd.SetWarnings False
     Set db = CurrentDb()
     Set Snapshots = db.OpenRecordset("Snapshots", dbOpenDynaset, dbSeeChanges)
     Snapshots.MoveLast
@@ -263,8 +262,8 @@ Else
             Snapshot = Snapshots.Fields("model_index")
 
             SQL = "UPDATE Snapshots SET [model_name] = '" & Right(Year(snapDate), 2) & snapSeason & "', [year] = '" & Year(snapDate) & "', [season] = '" & snapSeason & "', [date] = '" _
-            & month(snapDate) & "/" & day(snapDate) & "/" & Year(snapDate) & "', [system_load_MW] = '" & SnapLoad & "', [OR_interchange_MW] = '" & SnapIntOR & "', [study] = '" & SnapType & _
-            "', [psse_header1] = '" & Year(snapDate) & "', [psse_header2] = '" & Year(snapDate) & snapSeason & " SCEG AREA'"
+            & month(snapDate) & "/" & day(snapDate) & "/" & Year(snapDate) & "', [system_load_MW] = '" & SnapLoad & "', [OR_interchange_MW] = '" & SnapIntOR & "', [study] = '" & SnapType _
+            & " " & Year(snapDate) & "', [psse_header1] = '" & Year(snapDate) & " " & SnapType "', [psse_header2] = '" & Year(snapDate) & snapSeason & " SCEG AREA'"
 
             DoCmd.RunSQL SQL
 
@@ -882,37 +881,50 @@ If Not incSolarQ(index) Then
 Else
     percentOfSolarQ(index) = Me.TextPercSolarPeak.Value
     ignoreAfterQueueNumQ(index) = Me.TextIgnoreAfterQueueNum.Value
-End If
 
 incNoIAQ(index) = Me.CheckNoIA.Value
-incERISQ(index) = Me.CheckERIS.Value
-incAFSYSQ(index) = Me.CheckAFSys.Value
+' incERIS = Me.CheckERIS.Value 'not needed anymore. Checkbox deleted. BKU 9-5-17
+incAffSysQ(index) = Me.CheckAffSys.Value
+End If
 
 incBusDataQ(index) = Me.CheckIncBusData.Value
 incShuntDataQ(index) = Me.CheckIncShuntData.Value
 incBranchDataQ(index) = Me.CheckIncBranchData.Value
-incTfrmDataQ(index) = Me.CheckIncTfrmData.Value
+incTfmrDataQ(index) = Me.CheckIncTfmrData.Value
 incLoadDataQ(index) = Me.CheckIncLoadData.Value
 incGenDataQ(index) = Me.CheckIncGenData.Value
 
-chkSolarKMLOutputQ(index) = Me.chkSolarKMLOutput.Value
+chkSolarKMLoutputQ(index) = Me.chkSolarKMLoutput.Value
 
 PSSESavQ(index) = Me.chkPSSESav.Value
 PSSEVer33HigherQ(index) = Me.chkPSSEVer33Higher.Value
-PWAuxQ(index) = Me.chkPWAux.Value
 
-PSSESeqQ(index) = Me.chkPSSESeq.Value
+PWauxQ(index) = Me.chkPWaux.Value
+PSSECtgQ(index) = Me.chkPSSECtg.Value
 PSSEDynQ(index) = Me.chkPSSEDyn.Value
 
+PSSESeq(index) = Me.chkPSSESeq.Value
+' PWAux = Me.chkPWAux.Value
+' InlcudeAuxSeq = Me.chkIncludeAuxSeq.Value
+includeAuxCTGQ(index) = Me.chkIncludeAuxCTG.Value
+includeAxdLatsLongsQ(index) = Me.chkIncludeAxdLatsLongs.Value
+
 SlackBusQ(index) = Me.cmbSlackBus.Value
-CombineBusesQ(index) = Me.chkCombineBuses.Value
+' CombineBuses = Me.chkCombineBusses.Value
 GenDownQ(index) = Me.chkGenDown.Value
 PWGMDAuxQ(index) = Me.chkPWGMD.Value
 
-' Build file path
+DoCmd.SetWarnings False
+SQL = "UPDATE Machines SET is_slack = flase WHERE bus_number <> " & Me.slackBusNum.Value
+DoCmd.RunSQL SQL 'Run SQL
+SQL = "UPDATE Machines SET is_slack = true WHERE bus_number " & Me.slackBusNum.Value
+DoCmd.RunSQL SQL 'Run SQL
+DoCmd.SetWarnings True
+'MsgBox (SnapshotNameQ(index))
+
 FilePathQ(index) = OutputDirQ(index)
 
-If Right(OutputDirQ(index), 1) <> "\" Then
+If Right(OutputDirQ(index), 1) <> "\" Then _
     FilePathQ(index) = FilePathQ(index) & "\"
 FilePathQ(index) = FilePathQ(index) & FilenamePrefixQ(index) & SnapshotNameQ(index)
 If GenDownQ(index) Then
