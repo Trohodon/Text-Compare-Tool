@@ -506,10 +506,6 @@ Else
             SnapshotsQ.Close
             DoCmd.SetWarnings True
 
-            '=======================================================
-            ' Write Outputs
-            '=======================================================
-
             If PSSESavQ(counter) Then
 
                 If ModelWriter.WriteOutFullModel( _
@@ -576,9 +572,6 @@ Else
                 Call RawWriter.WriteLatLongsAux(FilePathQ(counter), SnapshotQ(counter), RegionalQ(counter), busOffsetQ(counter), combineBusesQ(counter))
             End If
 
-            '=======================================================
-            ' Reset Snapshots
-            '=======================================================
 
             DoCmd.SetWarnings False
 
@@ -602,11 +595,6 @@ Else
 MkDirFail:
     MsgBox exitMsg
 End Sub
-
-
-'=======================================================
-' Set up Snapshots Table
-'=======================================================
 
 Dim db As DAO.Database
 Dim Snapshots As DAO.Recordset
@@ -680,12 +668,7 @@ Snapshots.Close
 
 End Sub
 
-
-'=======================================================
-' Add to Queue Button
-'=======================================================
-
-Private Sub BtnAddQueue_Click()
+Private Sub BtnAddQueue_Click() 'Adds Item to Model Build Queue
 
 If Me.chkGenDown.Value Or Me.CheckContFacStudy.Value Then
     MsgBox ("Gen Down and Contingent Facilities Studies are currently not supported for Multiple Model Queue.")
@@ -701,7 +684,7 @@ If Me.chkPSSESav.Value Then
     End If
     ListSuffix = ".py"
 
-ElseIf Me.chkPWAux.Value Then
+ElseIf Me.chkPWaux.Value Then
     If MsgBox("You have selected to write out a PowerWorld .aux file. Do you wish to continue?", vbYesNo, "Output Selection") = vbNo Then
         Exit Sub
     End If
@@ -714,7 +697,9 @@ If QueueCount < 10 Then
 
     SetQueuedVariables (QueueCount)
 
-    If VarLoadFail Then Exit Sub
+    If VarLoadFail Then 
+	    Exit Sub
+	End If
 
     If Me.ComboSnapShotSeason.Value = "W" And month(Me.SnapShotDatePicker) <> 12 Then
         ModelQueue.AddItem Item:=Right(Year(Me.SnapShotDatePicker.Value) - 1, 2) & Me.ComboSnapShotSeason.Value & ListSuffix
@@ -732,59 +717,51 @@ Me.Refresh
 End Sub
 
 
-'=======================================================
-' Clear Queue
-'=======================================================
-
-Private Sub BtnClearQueue_Click()
+Private Sub BtnClearQueue_Click() 'Clears Model Build Queue
     Call ClearQueue
-End Sub
+End Sub 
 
-Private Sub ClearQueue()
+Private Sub ClearQueue() 'Clears Model Build Queue
 
 Dim intItemsInList As Integer
 Dim intCounter As Integer
 
-intItemsInList = Me!ModelQueue.ListCount
+intItemsInList = Me![ModelQueue].ListCount
 
 For intCounter = 0 To intItemsInList - 1
-    Me!ModelQueue.RemoveItem 0
+    Me![ModelQueue].RemoveItem 0
 Next
 
 UseQueue = False
 
 MsgBox ("Model Build Queue Cleared.")
 
-Me.Refresh
+Me.Refresh 'refresh the mModelBuildForm so time stamp box below buttons updates.
 
 End Sub
 
-
-'=======================================================
-' Set Queued Variables
-'=======================================================
 
 Private Sub SetQueuedVariables(index As Integer)
 
 DoCmd.SetWarnings False
 
-' Get form data
+'Get form data:
 Me.txtOutputDir.SetFocus
 OutputDirQ(index) = Me.txtOutputDir.Text
 
 If Dir(OutputDirQ(index), vbDirectory) = vbNullString Then
-    On Error GoTo MkDirFail
+    'On Error GoTo MkDirFail
     MkDir OutputDirQ(index)
-    exitMsg = "Problem encountered attempting to make directory " & OutputDirQ(index) & ". Quitting."
+    exitMsg = "Problem encountered attempting to make directory " & OutputDir & ". Quitting."
     On Error GoTo -1
 End If
 
-FilenamePrefixQ(index) = Me.txtFilenamePrefix.Value
+FilenamePrefixQ(index) = txtFilenamePrefix.Value
 Me.txtFilenameSuffix.SetFocus
-FilenameSuffixQ(index) = Me.txtFilenameSuffix.Text
+FilenameSuffixQ(index) = txtFilenameSuffix.Text
 
 snapDateQ(index) = Me.SnapShotDatePicker.Value
-
+'MsgBox ("SnapDate: " & snapDateQ(index))
 If IsNull(Me.ComboSnapShotSeason.Value) Then
     MsgBox ("You must enter a Snapshot Season")
     VarLoadFail = True
@@ -792,14 +769,6 @@ If IsNull(Me.ComboSnapShotSeason.Value) Then
 End If
 
 snapSeasonQ(index) = Me.ComboSnapShotSeason.Value
-
-If snapSeasonQ(index) = "W" Then
-    SnapshotNameQ(index) = Right(Year(snapDateQ(index)) - 1, 2) & snapSeasonQ(index)
-Else
-    SnapshotNameQ(index) = Right(Year(snapDateQ(index)), 2) & snapSeasonQ(index)
-End If
-
-projectsSubsetQ(index) = chkProjectsOutput.Value
 
 If snapSeasonQ(index) = "W" Then
     SnapshotNameQ(index) = Right(Year(snapDateQ(index)) - 1, 2) & snapSeasonQ(index)
@@ -820,7 +789,7 @@ If projectsSubsetQ(index) Then
     End If
 Else
 
-' Set snapshot up
+'Set snapshot up
 If IsNull(Me.SnapShotLoad.Value) Then
     MsgBox ("You must enter a Snapshot Load value")
     VarLoadFail = True
