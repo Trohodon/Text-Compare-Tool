@@ -436,70 +436,64 @@ Else
 
         If PSSESav Then
 		
-		If ModelWriter.WriteOutFullModel(FilePath, baseYear, Snapshot, Regional, busOffset, RegionalArea, ZoneOffset, ZoneConfig, OwnerOffset, OverwriteArea, _
-    SCEGArea, AutoDispatch, TargetSwingGen, slackBus, combineBuses, PSSESeq, PSSEDyn, UseOldWinterRatings, UseSeasonalRatings, UseNewWinPeakRatings, UseOpsPlnWinRatings, _
-    UseSpringRatings, UseNewSumRatings, UseFallRatings, GenDown, SysLoss, TRMImport, TRMImDEC, TRMImDVP, TRMImDEP, TRMImSC, incSolar, percentOfSolar, ignoreAfterQueueNum, _
-    incNOIA, incAffSys, incERIS, incBusData, incShuntData, incBranchData, incTfmrData, incLoadData, incGenData, True, snapDate, snapSeason, projectsSubset, projectsStartDate, _
-    projectsEndDate, PSSEVer33Higher) Then
+			If ModelWriter.WriteOutFullModel(FilePath, baseYear, Snapshot, Regional, busOffset, RegionalArea, ZoneOffset, ZoneConfig, OwnerOffset, OverwriteArea, _
+				SCEGArea, AutoDispatch, TargetSwingGen, SlackBus, combineBuses, PSSESeq, PSSEDyn, UseOldWinterRatings, UseSeasonalRatings, UseNewWinPeakRatings, UseOpsPlnWinRatings, _
+				UseSpringRatings, UseNewSumRatings, UseFallRatings, GenDown, SysLoss, TRMImport, TRMImDEC, TRMImDVP, TRMImDEP, TRMImSC, incSolar, percentOfSolar, ignoreAfterQueueNum, _
+				incNoIA, incAffSys, incERIS, incBusData, incShuntData, incBranchData, incTfmrData, incLoadData, incGenData, True, snapDate, snapSeason, projectsSubset, projectsStartDate, _
+				projectsEndDate, PSSEVer33Higher) Then
 
-    exitMsg = "Model Data Written to: " & FilePath
-Else
-    exitMsg = "Did not complete model write-out. Something is broken. Probably should let an expert know."
-End If
-
-
+				exitMsg = "Model Data Written to: " & FilePath
+			Else
+				exitMsg = "Did not complete model write-out. Something is broken. Probably should let an expert know."
+			End If
 
 
-ElseIf PWAux Then    'Changed to AuxWriter.WriteOutFullModel AU 12 18 19
-    If AuxWriter.WriteOutFullModel(FilePath, baseYear, Snapshot, Regional, busOffset, RegionalArea, ZoneOffset, ZoneConfig, OwnerOffset, OverwriteArea, _
-        SCEGArea, AutoDispatch, TargetSwingGen, slackBus, combineBuses, PSSESeq, PSSEDyn, UseOldWinterRatings, UseSeasonalRatings, UseNewWinPeakRatings, UseOpsPlnWinRatings, _
-        UseSpringRatings, UseNewSumRatings, UseFallRatings, GenDown, SysLoss, TRMImport, TRMImDEC, TRMImDVP, TRMImDEP, TRMImSC, incSolar, percentOfSolar, ignoreAfterQueueNum, _
-        incNOIA, incAffSys, incERIS, incBusData, incShuntData, incBranchData, incTfmrData, incLoadData, incGenData, False, snapDate, snapSeason, projectsSubset, projectsStartDate, _
-        projectsEndDate) Then
 
-        exitMsg = "Model Data Written to: " & FilePath
-    Else
-        exitMsg = "Did not complete model write-out. Something is broken. Probably should let an expert know."
-    End If
-End If
 
-If chkSolarKMLOutput Then
-    Call ModelWriter.createSolarKMLSub
-End If
+		ElseIf PWaux Then    'Changed to AuxWriter.WriteOutFullModel AU 12 18 19
+			If AuxWriter.WriteOutFullModel(FilePath, baseYear, Snapshot, Regional, busOffset, RegionalArea, ZoneOffset, ZoneConfig, OwnerOffset, OverwriteArea, _
+				SCEGArea, AutoDispatch, TargetSwingGen, SlackBus, combineBuses, PSSESeq, PSSEDyn, UseOldWinterRatings, UseSeasonalRatings, UseNewWinPeakRatings, UseOpsPlnWinRatings, _
+				UseSpringRatings, UseNewSumRatings, UseFallRatings, GenDown, SysLoss, TRMImport, TRMImDEC, TRMImDVP, TRMImDEP, TRMImSC, incSolar, percentOfSolar, ignoreAfterQueueNum, _
+				incNoIA, incAffSys, incERIS, incBusData, incShuntData, incBranchData, incTfmrData, incLoadData, incGenData, False, snapDate, snapSeason, projectsSubset, projectsStartDate, _
+				projectsEndDate) Then
 
-If PWGMDaux Then
-    Call RawWriter.WritePWGMDData(FilePath, Snapshot, busOffset, combineBuses, percentOfSolar, ignoreAfterQueueNum, incNOIA, PSSEDyn, inc46kvData, incSolar, Regional)
-End If
+				exitMsg = "Model Data Written to: " & FilePath
+			Else
+				exitMsg = "Did not complete model write-out. Something is broken. Probably should let an expert know."
+			End If
+		End If
 
-If includeAuxCTG Then
-    Call ModelWriter.UpdateDeviceData
-    Call RawWriter.WritePWConFile(FilePath, Snapshot, Regional, busOffset, combineBuses, incSolar, ignoreAfterQueueNum, incNOIA)
-End If
+		If chkSolarKMLoutput Then
+			Call ModelWriter.createSolarKMLSub
+		End If
 
-End If
+		If PWGMDAux Then
+			Call RawWriter.WritePWGMDData(FilePath, Snapshot, busOffset, combineBuses, percentOfSolar, ignoreAfterQueueNum, incNoIA, PSSEDyn, inc46kvData, incSolar, Regional)
+		End If
 
-If includeAxdLatsLongs Then
-    Call RawWriter.WriteLatsLongsAxd(FilePath, Snapshot, Regional, busOffset, combineBuses)
-End If
+		If includeAuxCTG Then
+			Call ModelWriter.UpdateDeviceData
+			Call RawWriter.WritePwConFile(FilePath, Snapshot, Regional, busOffset, combineBuses, incSolar, ignoreAfterQueueNum, incNoIA)
+		End If
 
-'Reset Snapshots table to today's date, so queries that are run in real time match up with today's date. JWR - 2019/10/16
-DoCmd.SetWarnings False
+		If includeAxdLatsLongs Then
+			Call RawWriter.WriteLatsLongsAxd(FilePath, Snapshot, Regional, busOffset, combineBuses)
+		End If
 
-SQL = "UPDATE Snapshots SET [model_name] = '" & Right(Year(Now()), 2) & snapSeason & "', [year] = '" & Year(Now()) & "', [date] = '" & month(Now()) & "/" & day(Now()) & "/" & Year(Now()) & _
-    "', [study] = '" & SnapType & "', [psse_header1] = '" & Year(Now()) & "', [psse_header2] = '" & Year(Now()) & snapSeason & " SCEG AREA'"
+		' Reset Snapshots table to today's date, so queries that are run in real time match up with today's date. JWR - 2019/10/16
+		DoCmd.SetWarnings False
 
-DoCmd.RunSQL SQL
+		SQL = "UPDATE Snapshots SET [model_name] = '" & Right(Year(Now()), 2) & snapSeason & "', [year] = '" & Year(Now()) & "', [date] = '" & month(Now()) & "/" & day(Now()) & "/" & Year(Now()) & _
+		    "', [study] = '" & SnapType & " " & Year(Now()) & "', [psse_header1] = '" & Year(Now()) & " " & SnapType & "', [psse_header2] = '" & Year(Now()) & snapSeason & " SCEG AREA'"
 
-DoCmd.SetWarnings True
+		DoCmd.RunSQL SQL
 
-Else    'Multiple models If NotQueue
-    If MsgBox("Proceed with writing ALL Queued Models?", vbYesNo, "Output Selection") = vbNo Then
-        Exit Sub
-    End If
-End If
-			
-			
-			
+		DoCmd.SetWarnings True
+
+		Else    'Multiple models If NotQueue
+			If MsgBox("Proceed with writing ALL Queued Models?", vbYesNo, "Output Selection") = vbNo Then
+			Exit Sub
+		End If
 			
         Dim counter As Integer
         counter = 0
