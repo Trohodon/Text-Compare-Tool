@@ -556,7 +556,7 @@ Else
 
                 If ModelWriter.WriteOutFullModel(FilePathQ(counter), baseYearQ(counter), SnapshotQ(counter), RegionalQ(counter), busOffsetQ(counter), RegionalAreaQ(counter), ZoneOffsetQ(counter), ZoneConfigQ(counter), OwnerOffsetQ(counter), OverwriteAreaQ(counter), _
 					SCEGAreaQ(counter), AutoDispatchQ(counter), TargetSwingGenQ(counter), SlackBusQ(counter), combineBusesQ(counter), PSSESeqQ(counter), PSSEDynQ(counter), UseOldWinterRatingsQ(counter), UseSeasonalRatingsQ(counter), UseNewWinPeakRatingsQ(counter), UseOpsPlnWinRatingsQ(counter), _
-                    UseSpringRatingsQ(counter), UseNewSumRatingsQ(counter), UseFallRatingsQ(counter) , GenDownQ(counter), SysLossQ(counter), TRMImportQ(counter), TRMImDECQ(counter), TRMImDVPQ(counter), TRMImDEPQ(counter), TRMImSCQ(counter), incSolarQ(counter), percentOfSolarQ(counter), ignoreAfterQueueNumQ(counter), _
+                    UseSpringRatingsQ(counter), UseNewSumRatingsQ(counter), UseFallRatingsQ(counter), GenDownQ(counter), SysLossQ(counter), TRMImportQ(counter), TRMImDECQ(counter), TRMImDVPQ(counter), TRMImDEPQ(counter), TRMImSCQ(counter), incSolarQ(counter), percentOfSolarQ(counter), ignoreAfterQueueNumQ(counter), _
 					incNoIAQ(counter), incAffSysQ(counter), incERISQ(counter), incBusDataQ(counter), incShuntDataQ(counter), incBranchDataQ(counter), incTfmrDataQ(counter), incLoadDataQ(counter), incGenDataQ(counter), True, snapDateQ(counter), snapSeasonQ(counter), projectsSubsetQ(counter), projectsStartDateQ(counter), _
 					projectsEndDateQ(counter), PSSEVer33HigherQ(counter)) Then
 
@@ -570,7 +570,7 @@ Else
 
                 If AuxWriter.WriteOutFullModel(FilePathQ(counter), baseYearQ(counter), SnapshotQ(counter), RegionalQ(counter), busOffsetQ(counter), RegionalAreaQ(counter), ZoneOffsetQ(counter), ZoneConfigQ(counter), OwnerOffsetQ(counter), OverwriteAreaQ(counter), _
 					SCEGAreaQ(counter), AutoDispatchQ(counter), TargetSwingGenQ(counter), SlackBusQ(counter), combineBusesQ(counter), PSSESeqQ(counter), PSSEDynQ(counter), UseOldWinterRatingsQ(counter), UseSeasonalRatingsQ(counter), UseNewWinPeakRatingsQ(counter), UseOpsPlnWinRatingsQ(counter), _
-                    UseSpringRatingsQ(counter), UseNewSumRatingsQ(counter), UseFallRatingsQ(counter) , GenDownQ(counter), SysLossQ(counter), TRMImportQ(counter), TRMImDECQ(counter), TRMImDVPQ(counter), TRMImDEPQ(counter), TRMImSCQ(counter), incSolarQ(counter), percentOfSolarQ(counter), ignoreAfterQueueNumQ(counter), _
+                    UseSpringRatingsQ(counter), UseNewSumRatingsQ(counter), UseFallRatingsQ(counter), GenDownQ(counter), SysLossQ(counter), TRMImportQ(counter), TRMImDECQ(counter), TRMImDVPQ(counter), TRMImDEPQ(counter), TRMImSCQ(counter), incSolarQ(counter), percentOfSolarQ(counter), ignoreAfterQueueNumQ(counter), _
 					incNoIAQ(counter), incAffSysQ(counter), incERISQ(counter), incBusDataQ(counter), incShuntDataQ(counter), incBranchDataQ(counter), incTfmrDataQ(counter), incLoadDataQ(counter), incGenDataQ(counter), False, snapDateQ(counter), snapSeasonQ(counter), projectsSubsetQ(counter), projectsStartDateQ(counter), _
 					projectsEndDateQ(counter)) Then
 
@@ -592,19 +592,18 @@ Else
 
             If includeAuxCTGQ(counter) Then
                 Call ModelWriter.UpdateDeviceData
-                Call RawWriter.WritePWBFile(FilePathQ(counter), SnapshotQ(counter), RegionalQ(counter), busOffsetQ(counter), combineBusesQ(counter))
+                Call RawWriter.WritePwConFile(FilePathQ(counter), SnapshotQ(counter), RegionalQ(counter), busOffsetQ(counter), combineBusesQ(counter), incSolarQ(counter), ignoreAfterQueueNumQ(counter) incNoIAQ(counter))
             End If
 
-            If IncludeAuxdLatLongsQ(counter) Then
-                Call RawWriter.WriteLatLongsAux(FilePathQ(counter), SnapshotQ(counter), RegionalQ(counter), busOffsetQ(counter), combineBusesQ(counter))
+            If includeAxdLatsLongsQ(counter) Then
+                Call RawWriter.WriteLatsLongsAxd(FilePathQ(counter), SnapshotQ(counter), RegionalQ(counter), busOffsetQ(counter), combineBusesQ(counter))
             End If
 
-
+            ' Reset Snapshots table to today's date, so queries that are run in real time match up today's date. JWR - 2019/10/16
             DoCmd.SetWarnings False
 
-            SQL = "UPDATE Snapshots SET [model_name] = '" & Right(Year(Now()), 2) & snapSeasonQ(counter) & _
-                  "', [year] = '" & Year(Now()) & _
-                  "', [date] = '" & month(Now()) & "/" & day(Now()) & "/" & Year(Now()) & "'"
+            SQL = "UPDATE Snapshots SET [model_name] = '" & Right(Year(Now()), 2) & snapSeason & "', [year] = '" & Year(Now()) & "', [date] = '" & month(Now()) & "/" & day(Now()) & "/" & Year(Now()) & _
+			"', [study] = '" & SnapType & " " & Year(Now()) & "', [psse_header1] = '" & Year(Now()) & " " & SnapType & "', [psse_header2] = '" & Year(Now()) & snapSeason & " SCEG AREA'"
 
             DoCmd.RunSQL SQL
 
@@ -616,12 +615,82 @@ Else
 
         Call ClearQueue
 
-    End If
+    End If ' Multiple Mods If Not Queue
 
 
 MkDirFail:
     MsgBox exitMsg
 End Sub
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 Dim db As DAO.Database
 Dim Snapshots As DAO.Recordset
@@ -634,7 +703,7 @@ If IsNull(Me.ComboSnapShotSeason.Value) Then
     Exit Sub
 End If
 
-' Set snapshot up
+'Set snapshot up
 If IsNull(Me.SnapShotLoad.Value) Then
     Exit Sub
 End If
@@ -664,24 +733,19 @@ While Not Snapshots.EOF
     If Snapshots.Fields("Selected") Then
 
         Snapshot = Snapshots.Fields("model_index")
+		
+		SQL = "UPDATE Snapshots SET [model_name] = '" & Right(Year(snapDate), 2) & snapSeason & "', [year] = '" & Year(snapDate) & "', [season] = '" & snapSeason & "', [date] = '" _
+		& month(snapDate) & "/" & day(snapDate) & "/" & Year(snapDate) & "', [system_load_MW] = '" & SnapLoad & "', [OR_interchange_MW] = '" & SnapIntOR & "', [study] = '" & SnapType _
+		& "' & Year(snapDate) & "', [psse_header1] = '" & Year(snapDate) & "' & SnapType & "', [psse_header2] = '" & Year(snapDate) & snapSeason & " SCEG AREA'"
 
-        SQL = "UPDATE Snapshots SET [model_name] = '" & _
-              Right(Year(snapDate), 2) & snapSeason & _
-              "', [year] = '" & Year(snapDate) & _
-              "', [system_load_MW] = '" & SnapLoad & _
-              "', [season] = '" & snapSeason & _
-              "', [date] = '" & month(snapDate) & "/" & day(snapDate) & "/" & Year(snapDate) & _
-              "', [psse_header1] = '" & Year(snapDate) & _
-              "', [psse_header2] = '" & Year(snapDate) & snapSeason & _
-              "' WHERE [model_index] = " & Snapshot
+		DoCmd.RunSQL SQL
 
+	If Right(snapSeason, 1) = "W" And month(snapDate) <> 12 Then
+		SQL = "UPDATE Snapshots SET [model_name] = '" & Right(Year(snapDate), 2) - 1 & snapSeason & "', [year] = '" & Year(snapDate) - 1 & "', [study] = '" & SnapType _
+        & "' & Year(snapDate) - 1 & "', [psse_header1] = '" & Year(snapDate) - 1 & "' & SnapType & "', [psse_header2] = '" & Year(snapDate) - 1 & snapSeason & " SCEG AREA'"
+		
         DoCmd.RunSQL SQL
-
-        If Right(snapSeason, 1) = "W" And month(snapDate) > 12 Then
-            SQL = "UPDATE Snapshots SET [model_name] = '" & _
-                  Right(Year(snapDate), 2) - 1 & snapSeason & "'"
-            DoCmd.RunSQL SQL
-        End If
+    End If
 
     Else
         Snapshots.Delete
