@@ -625,11 +625,10 @@ End Sub
 Private Sub CheckIncludeSolar_Click()
     Call checkIncSolar
 
-    If CheckScaleLdForSolar.Value And CheckIncludeSolar.Value And IsNumeric(SnapShotLoad.Value) Then ' Can't do calculation if System load value isn't already present
+    If CheckScaleLdForSolar.Value And CheckIncludeSolar.Value And IsNumeric(SnapShotLoad.Value) Then ' Can't do calculation if System Load value isn't already present
         Call setLoadValue(True)
+        Call setSysLdGivenSolar
     End If
-
-    Call setSysLdGivenSolar
 End Sub
 
 Private Sub CheckLastYearChecked_Click()
@@ -640,23 +639,20 @@ Private Sub CheckLastYearChecked_Click()
 End Sub
 
 Private Sub CheckNoIA_Click()
-    If CheckScaleLdForSolar.Value And CheckIncludeSolar.Value And IsNumeric(SnapShotLoad.Value) Then ' Can't do calculation if System load value isn't already present
-        Call setLoadValue(True)
-    End If
-
-    Call setSysLdGivenSolar
-End Sub
-
-Private Sub CheckScaleLdForSolar_Click()
-    If CheckScaleLdForSolar.Value And CheckIncludeSolar.Value And IsNumeric(SnapShotLoad.Value) Then ' Can't do calculation if System load value isn't already present
+    If CheckScaleLdForSolar.Value And CheckIncludeSolar.Value And IsNumeric(SnapShotLoad.Value) Then ' Can't do calculation if System Load value isn't already present
         Call setLoadValue(True)
         Call setSysLdGivenSolar
     End If
 End Sub
 
-Else
-    Call setLoadValue(True)
-End If
+Private Sub CheckScaleLdForSolar_Click()
+    If CheckScaleLdForSolar.Value And CheckIncludeSolar.Value And IsNumeric(SnapShotLoad.Value) Then ' Can't do calculation if System Load value isn't already present
+        Call setLoadValue(True)
+        Call setSysLdGivenSolar
+
+	Else
+		Call setLoadValue(True)
+	End If
 End Sub
 
 Private Sub chkProjectsOutput_Click()
@@ -674,32 +670,32 @@ Private Sub chkProjectsOutput_Click()
     CheckIncLoadData.Value = Not chkProjectsOutput.Value
     chkPWGMD.Value = Not chkProjectsOutput.Value
     chkIncludeAxdLatsLongs.Value = Not chkProjectsOutput.Value
-    chkSolarKMLOutput.Value = Not chkProjectsOutput.Value
+    chkSolarKMLoutput.Value = Not chkProjectsOutput.Value
     chkIncludeAuxCTG.Value = Not chkProjectsOutput.Value
 
     Call setLoadValue(True)
 End Sub
 
 Private Sub chkTRMImport_Click()
-    txtTRMImDec.Enabled = chkTRMImport.Value
+    txtTRMImDEC.Enabled = chkTRMImport.Value
     txtTRMImDVP.Enabled = chkTRMImport.Value
     txtTRMImDEP.Enabled = chkTRMImport.Value
     txtTRMImSC.Enabled = chkTRMImport.Value
 End Sub
 
-Private Sub chkUseSeasonalRatings_Click()
+Private Sub ChkUseSeasonalRatings_Click()
     chkUseOldWinRatings.Value = False
 End Sub
 
 Private Sub TextIgnoreAfterQueueNum_Exit(Cancel As Integer)
-    If CheckScaleLdForSolar.Value And CheckIncludeSolar.Value And IsNumeric(SnapShotLoad.Value) Then ' Can't do calculation if System load value isn't already present
+    If CheckScaleLdForSolar.Value And CheckIncludeSolar.Value And IsNumeric(SnapShotLoad.Value) Then ' Can't do calculation if System Load value isn't already present
         Call setLoadValue(True)
         Call setSysLdGivenSolar
     End If
 End Sub
 
 Private Sub TextPercSolarOfPeak_Exit(Cancel As Integer)
-    If CheckScaleLdForSolar.Value And CheckIncludeSolar.Value And IsNumeric(SnapShotLoad.Value) Then ' Can't do calculation if System load value isn't already present
+    If CheckScaleLdForSolar.Value And CheckIncludeSolar.Value And IsNumeric(SnapShotLoad.Value) Then ' Can't do calculation if System Load value isn't already present
         Call setLoadValue(False)
         Call setSysLdGivenSolar
     End If
@@ -721,8 +717,8 @@ Private Sub setSysLdGivenSolar()
     Dim avgDispDTM As Integer, sprDispDTM As Integer, sumDispDTM As Integer, falDispDTM As Integer, winDispDTM As Integer, dispDTM As Integer
     Dim incSolar As Boolean, percentOfSolar As Integer, ignoreAfterQueueNum As Integer, incNoIA As Boolean, incAffSys As Boolean
 
-    DoCmd.SetWarnings False
-    Set db = CurrentDb()
+    ' DoCmd.SetWarnings False
+    ' Set db = CurrentDb()
 
     snapSeason = Me.ComboSnapShotSeason.Value
     SnapLoad = Me.SnapShotLoad.Value
@@ -758,7 +754,7 @@ Private Sub cmbSnapshot_Change()
     Call snapshotChange
 End Sub
 
-Private Sub checkIntOR_AfterUpdate()
+Private Sub CheckIntOR_AfterUpdate()
     SnapShotIntOR.Enabled = CheckIntOR.Value
 End Sub
 
@@ -775,7 +771,7 @@ Private Sub chkPSSESav_Click()
     CheckIncBusData.Enabled = chkPSSESav.Value
     CheckIncShuntData.Enabled = chkPSSESav.Value
     CheckIncBranchData.Enabled = chkPSSESav.Value
-    CheckIncTfrmData.Enabled = chkPSSESav.Value
+    CheckIncTfmrData.Enabled = chkPSSESav.Value
     CheckIncLoadData.Enabled = chkPSSESav.Value
     CheckIncGenData.Enabled = chkPSSESav.Value
 End Sub
@@ -788,9 +784,23 @@ Private Sub chkPWaux_Click()
         chkPSSESeq.Value = False
         chkPSSESeq.Enabled = False
     End If
+	
+    If chkPSSESav.Enabled and chkPSSESav.Value Then
+	    chkPSSEVer33Higher.Enabled = True
+    Else
+	    chkPSSEVer33Higher.Enabled = False
+    End If
+
+    CheckIncBusData.Enabled = chkPSSEaux.Value
+    CheckIncShuntData.Enabled = chkPSSEaux.Value
+    CheckIncBranchData.Enabled = chkPSSEaux.Value
+    CheckIncTfmrData.Enabled = chkPSSEaux.Value
+    CheckIncLoadData.Enabled = chkPSSEaux.Value
+    CheckIncGenData.Enabled = chkPSSEaux.Value
+	
 End Sub
 
-Private Sub ComboSnapShotSeason_Change()
+Private Sub ComboSnapShotSeason_Change()  ' Can't do calculation if System Load value isn't already present
     Call setLoadValue(True)
 
     If CheckScaleLdForSolar.Value And CheckIncludeSolar.Value And IsNumeric(SnapShotLoad.Value) Then
@@ -798,7 +808,7 @@ Private Sub ComboSnapShotSeason_Change()
     End If
 End Sub
 
-Private Sub ComboSnapShotType_Change()
+Private Sub ComboSnapShotType_Change()  ' Can't do calculation if System Load value isn't already present
     Call setLoadValue(True)
 
     If CheckScaleLdForSolar.Value And CheckIncludeSolar.Value And IsNumeric(SnapShotLoad.Value) Then
@@ -833,16 +843,18 @@ Private Sub SnapShotDatePicker_AfterUpdate()
     Me.SnapShotDatePicker.SetFocus
     snapDate = Me.SnapShotDatePicker.Value
 	
-	    Me.cmbSlackBus.SetFocus
-    If SnapDate >= DateSerial(2021, 4, 30) Then
-        Me.cmbSlackBus.Value = "835"
-    Else
-        Me.cmbSlackBus.Value = "827"
-    End If
-
+	' Shouldn't need to change the slack bus to this Replacement gen anymore since load forecast was reduced. JWR - 2019/04/23
+	'     Me.cmbSlackBus.SetFocus
+    ' If SnapDate >= DateSerial(2021, 4, 30) Then ' This date corresponds to VCS2 Replacement generator online date - I should automate this by grabbing the date in the Machines table
+    '     Me.cmbSlackBus.Value = "835"
+    ' Else
+    '     Me.cmbSlackBus.Value = "827"
+    ' End If
+    '
+	
     On Error Resume Next
 
-    Me.ComboSnapShotSeason.SetFocus
+    ' Me.ComboSnapShotSeason.SetFocus
     If IsNull(Me.ComboSnapShotSeason.Value) Then
         Exit Sub
     End If
@@ -851,12 +863,12 @@ Private Sub SnapShotDatePicker_AfterUpdate()
 
     On Error GoTo 0
 
-    SnapInterchange = returnInterchangeValue(snapDate, SnapSeason)
+    ' 
+    ' SnapInterchange = returnInterchangeValue(SnapDate, SnapSeason)
+    ' Me.SnapShotIntOR.SetFocus
+    ' Me.SnapShotIntOR.Value = SnapInterchange
 
-    Me.SnapShotIntOR.SetFocus
-    Me.SnapShotIntOR.Value = SnapInterchange
-
-    If CheckScaleLdForSolar.Value And CheckIncludeSolar.Value And IsNumeric(SnapShotLoad.Value) Then
+    If CheckScaleLdForSolar.Value And CheckIncludeSolar.Value And IsNumeric(SnapShotLoad.Value) Then ' Can't do calculation if System Load value isn't already present
         Call setSysLdGivenSolar
     End If
 End Sub
@@ -879,12 +891,12 @@ Private Sub setLoadValue(allowPercSolChange As Boolean)
 
     baseYear = Year(Now()) - 2 ' Default to 2 years ago to be safe
 
-    Me.SnapShotDatePicker.SetFocus
+    ' Me.SnapShotDatePicker.SetFocus
     snapDate = Me.SnapShotDatePicker.Value
 
     On Error Resume Next
 
-    Me.ComboSnapShotSeason.SetFocus
+    ' Me.ComboSnapShotSeason.SetFocus
     If IsNull(Me.ComboSnapShotSeason.Value) Then
         Exit Sub
     ElseIf IsNull(Me.ComboSnapShotType.Value) And Not chkProjectsOutput.Value Then
@@ -894,7 +906,78 @@ Private Sub setLoadValue(allowPercSolChange As Boolean)
     snapSeason = Me.ComboSnapShotSeason.Value
     SnapType = Me.ComboSnapShotType.Value
 
+If chkUseSeasonalRatings.Value = False Then ' Added 10/2023 BU
+    If Right(snapSeason, 1) = "W" Then
+        Me.chkUseOldWinRatings.Value = True
+    Else
+        Me.chkUseOldWinRatings.Value = False
+    End If
+Else ' then use seasonal ratings
+    Me.chkUseOldWinRatings.Value = False
 
+    If Right(snapSeason, 1) = "W" And SnapType <> "NTSG" Then ' Option 1 is Winter Peak Ratings
+        Me.SeasonalRatingsOptGroup.Value = 1
+
+    ElseIf Right(snapSeason, 1) = "W" And SnapType = "NTSG" Then ' Option 2 is Ops Planning Winter Peak Ratings
+        Me.SeasonalRatingsOptGroup.Value = 2
+
+    ElseIf Right(snapSeason, 1) = "Z" Or Right(snapSeason, 1) = "L" Or Left(snapSeason, 1) = "D" Then ' Option 3 is Spring Ratings
+        Me.SeasonalRatingsOptGroup.Value = 3
+
+    ElseIf Right(snapSeason, 1) = "S" Then ' Option 4 is Summer Ratings
+        Me.SeasonalRatingsOptGroup.Value = 4
+
+    ElseIf Right(snapSeason, 1) = "F" Then ' Option 5 is Fall Ratings
+        Me.SeasonalRatingsOptGroup.Value = 5
+
+    ElseIf Right(snapSeason, 1) = "H" Then ' Option 4 is Summer Ratings
+        Me.SeasonalRatingsOptGroup.Value = 4
+
+    Else
+        Me.SeasonalRatingsOptGroup.Value = 2
+    End If
+End If
+
+If Not chkProjectsOutput.Value Then
+    SnapType = Me.ComboSnapShotType.Value
+End If
+
+If SnapType = "Sh Ckt" Then
+    Me.chkPSSESeq.Value = True
+End If
+
+If SnapType = "GEN CNXN" Then
+    Me.CheckNoIA.Value = True
+Else
+    Me.CheckNoIA.Value = False
+End If
+
+On Error GoTo 0
+
+If Not chkProjectsOutput.Value Then
+    SnapLoad = returnLoadValue(snapDate, snapSeason, SnapType)
+    Me.SnapShotLoad.SetFocus
+    Me.SnapShotLoad.Value = SnapLoad
+End If
+
+If allowPercSolChange Then
+    If Not chkProjectsOutput.Value Then
+        percSolarGenMax = returnPercGenMax(snapSeason, SnapType)
+    Else
+        percSolarGenMax = returnPercGenMax(snapSeason, "")
+    End If
+
+    Me.TextPercSolarOfPeak.SetFocus
+    Me.TextPercSolarOfPeak.Value = percSolarGenMax
+End If
+
+If Not chkProjectsOutput.Value Then
+    baseYear = returnBaseYear(baseYear, Me.CheckLastYearChecked.Value)
+    Me.txtBaseYear.SetFocus
+    Me.txtBaseYear.Value = baseYear
+End If
+
+' Set up Snapshots table based on selections in ModelBuildForm
 
 
 
