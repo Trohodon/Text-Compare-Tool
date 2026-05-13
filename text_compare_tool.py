@@ -104,6 +104,8 @@ class TextCompareApp:
         self.diff_text.tag_config("right", foreground="#007000")
         self.diff_text.tag_config("info", foreground="#003399")
         self.diff_text.tag_config("warn", foreground="#aa6600")
+        self.diff_text.tag_config("char_left", background="#b00020", foreground="#ffffff", underline=True)
+        self.diff_text.tag_config("char_right", background="#007000", foreground="#ffffff", underline=True)
 
         self.left_text.tag_config("diff", background="#fdecef")
         self.left_text.tag_config("active_diff", background="#f8d6dc")
@@ -314,14 +316,86 @@ class TextCompareApp:
             if a == b:
                 continue
 
-            idx = 0
-            limit = min(len(a), len(b))
-            while idx < limit and a[idx] == b[idx]:
-                idx += 1
+            char_ops = difflib.SequenceMatcher(None, a, b).get_opcodes()
+            changed_columns = self._collect_changed_columns(char_ops)
 
-            self.diff_text.insert(tk.END, f"  First character mismatch near column {idx + 1}\n", "info")
-            self.diff_text.insert(tk.END, f"  Left : {a[max(0, idx - 30):idx + 50]}\n", "left")
-            self.diff_text.insert(tk.END, f"  Right: {b[max(0, idx - 30):idx + 50]}\n", "right")
+            self.diff_text.insert(
+                tk.END,
+                f"  Character changes for L{left_entries[n]['original_line_number']:04d} / R{right_entries[n]['original_line_number']:04d}"
+                f" at columns {changed_columns}\n",
+                "info",
+            )
+            self._insert_highlighted_diff_line("  Left : ", left_entries[n]["original_line_number"], a, char_ops, "left")
+            self._insert_highlighted_diff_line("  Right: ", right_entries[n]["original_line_number"], b, char_ops, "right")
+
+            for detail in self._summarize_char_changes(char_ops, a, b):
+                self.diff_text.insert(tk.END, f"    {detail}\n", "warn")
+
+    def _insert_highlighted_diff_line(self, label, line_number, text, char_ops, side):
+        self.diff_text.insert(tk.END, f"{label}L{line_number:04d} | " if side == "left" else f"{label}R{line_number:04d} | ")
+
+        changed_tag = "char_left" if side == "left" else "char_right"
+        for tag, i1, i2, j1, j2 in char_ops:
+            if side == "left":
+                segment = text[i1:i2]
+            else:
+                segment = text[j1:j2]
+
+            if not segment:
+                continue
+
+            render_segment = self._make_visible_text(segment)
+            self.diff_text.insert(tk.END, render_segment, changed_tag if tag != "equal" else side)
+
+        self.diff_text.insert(tk.END, "\n")
+
+    def _collect_changed_columns(self, char_ops):
+        columns = []
+        for tag, i1, i2, _j1, _j2 in char_ops:
+            if tag == "equal":
+                continue
+
+            start = i1 + 1
+            end = max(i1, i2 - 1) + 1
+            if end < start:
+                end = start
+
+            if start == end:
+                columns.append(str(start))
+            else:
+                columns.append(f"{start}-{end}")
+
+        return ", ".join(columns) if columns else "unknown"
+
+    def _summarize_char_changes(self, char_ops, left_text, right_text):
+        details = []
+
+        for tag, i1, i2, j1, j2 in char_ops:
+            if tag == "equal":
+                continue
+
+            left_part = left_text[i1:i2]
+            right_part = right_text[j1:j2]
+            column = i1 + 1
+
+            if tag == "replace":
+                details.append(
+                    f"col {column}: {self._quote_segment(left_part)} -> {self._quote_segment(right_part)}"
+                )
+            elif tag == "delete":
+                details.append(f"col {column}: delete {self._quote_segment(left_part)}")
+            elif tag == "insert":
+                details.append(f"col {column}: insert {self._quote_segment(right_part)}")
+
+        return details
+
+    def _make_visible_text(self, text):
+        return text.replace("\t", "\\t")
+
+    def _quote_segment(self, text):
+        if text == "":
+            return "<empty>"
+        return repr(text.replace("\t", "\\t").replace(" ", "<space>"))
 
     def _highlight_block(self, block, active):
         tag = "active_diff" if active else "diff"
