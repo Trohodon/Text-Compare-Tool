@@ -1,5 +1,0 @@
-EnterMode(EDIT);
-CreateData(Bus, [BusNum, BusName, BusNomVolt], [1781, "P17_FROM", 230.0]);
-CreateData(Bus, [BusNum, BusName, BusNomVolt], [1782, "P17_TO", 230.0]);
-CreateData(Branch, [BusNum, BusNum:1, LineCircuit, LineR, LineX, LineC, LineAMVA, LineAMVA:1, LineAMVA:2], [1781, 1782, "S1", 0.01, 0.10, 0.001, 100.0, 110.0, 120.0]);
-SetData(Branch, [BusNum, BusNum:1, LineCircuit, BranchSeqR, BranchSeqX, BranchSeqC, BranchSeqG, BranchSeqB, BranchSeqG:1, BranchSeqB:1], [1781, 1782, "S1", 0.031, 0.301, 0.0031, 0.0041, 0.0051, 0.0061, 0.0071]);
