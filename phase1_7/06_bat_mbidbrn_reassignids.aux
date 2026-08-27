@@ -1,0 +1,9 @@
+EnterMode(EDIT);
+CreateData(Bus, [BusNum, BusName, BusNomVolt], [1751, "P17_A", 230.0]);
+CreateData(Bus, [BusNum, BusName, BusNomVolt], [1752, "P17_B", 230.0]);
+CreateData(Bus, [BusNum, BusName, BusNomVolt], [1753, "P17_C", 230.0]);
+CreateData(Branch, [BusNum, BusNum:1, LineCircuit, LineR, LineX, LineC, LineAMVA, LineAMVA:1, LineAMVA:2, Selected, CustomString], [1751, 1752, "A1", 0.01, 0.10, 0.001, 100.0, 110.0, 120.0, "NO", ""]);
+CreateData(Branch, [BusNum, BusNum:1, LineCircuit, LineR, LineX, LineC, LineAMVA, LineAMVA:1, LineAMVA:2, Selected, CustomString], [1751, 1753, "N1", 0.02, 0.20, 0.002, 200.0, 210.0, 220.0, "NO", ""]);
+SetData(Branch, [BusNum, BusNum:1, LineCircuit, Selected, CustomString], [1751, 1752, "A1", "YES", "Z1"]);
+ReassignIDs(BRANCH, "CustomString", SELECTED, NO);
+SetData(Branch, [BusNum, BusNum:1, LineCircuit, Selected, CustomString], [1751, 1752, "Z1", "NO", ""]);

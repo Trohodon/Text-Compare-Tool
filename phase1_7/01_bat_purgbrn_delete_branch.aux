@@ -1,0 +1,7 @@
+EnterMode(EDIT);
+CreateData(Bus, [BusNum, BusName, BusNomVolt], [1701, "P17_SRC", 230.0]);
+CreateData(Bus, [BusNum, BusName, BusNomVolt], [1702, "P17_DEL", 230.0]);
+CreateData(Bus, [BusNum, BusName, BusNomVolt], [1703, "P17_KEEP", 230.0]);
+CreateData(Branch, [BusNum, BusNum:1, LineCircuit, LineR, LineX, LineC, LineAMVA, LineAMVA:1, LineAMVA:2], [1701, 1702, "D1", 0.01, 0.10, 0.001, 100.0, 110.0, 120.0]);
+CreateData(Branch, [BusNum, BusNum:1, LineCircuit, LineR, LineX, LineC, LineAMVA, LineAMVA:1, LineAMVA:2], [1701, 1703, "K1", 0.02, 0.20, 0.002, 200.0, 210.0, 220.0]);
+DeleteDevice([Branch 1701 1702 "D1"]);

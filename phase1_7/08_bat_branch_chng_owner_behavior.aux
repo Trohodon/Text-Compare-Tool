@@ -1,0 +1,7 @@
+EnterMode(EDIT);
+CreateData(Owner, [OwnerNum, OwnerName], [21, "P17_OWN21"]);
+CreateData(Owner, [OwnerNum, OwnerName], [22, "P17_OWN22"]);
+CreateData(Bus, [BusNum, BusName, BusNomVolt], [1771, "P17_FROM", 230.0]);
+CreateData(Bus, [BusNum, BusName, BusNomVolt], [1772, "P17_TO", 230.0]);
+CreateData(Branch, [BusNum, BusNum:1, LineCircuit, OwnerNum, OwnPercent, LineR, LineX, LineC, LineAMVA, LineAMVA:1, LineAMVA:2], [1771, 1772, "C1", 21, 100.0, 0.01, 0.10, 0.001, 100.0, 110.0, 120.0]);
+SetData(Branch, [BusNum, BusNum:1, LineCircuit, OwnerNum, OwnerNum:1, OwnPercent, OwnPercent:1], [1771, 1772, "C1", 21, 22, 65.0, 35.0]);

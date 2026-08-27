@@ -1,0 +1,7 @@
+EnterMode(EDIT);
+CreateData(Bus, [BusNum, BusName, BusNomVolt], [1711, "P17_STAY", 230.0]);
+CreateData(Bus, [BusNum, BusName, BusNomVolt], [1712, "P17_MOVE", 230.0]);
+CreateData(Bus, [BusNum, BusName, BusNomVolt], [1713, "P17_NEWTO", 230.0]);
+CreateData(Branch, [BusNum, BusNum:1, LineCircuit, LineR, LineX, LineC, LineAMVA, LineAMVA:1, LineAMVA:2], [1711, 1712, "A1", 0.01, 0.10, 0.001, 100.0, 110.0, 120.0]);
+CreateData(Branch, [BusNum, BusNum:1, LineCircuit, LineR, LineX, LineC, LineAMVA, LineAMVA:1, LineAMVA:2], [1711, 1713, "N1", 0.02, 0.20, 0.002, 200.0, 210.0, 220.0]);
+Move([BRANCH 1711 1712 "A1"], [1711 1713 "B1"], 0, YES);
